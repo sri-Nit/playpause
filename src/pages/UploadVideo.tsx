@@ -51,6 +51,10 @@ const UploadVideo = () => {
 
       if (error) {
         console.error(`Upload error for ${bucket}:`, error);
+        // Check if it's a permissions error
+        if (error.message.includes('permission')) {
+          throw new Error(`Permission denied for ${bucket}. Please check bucket policies in Supabase Dashboard.`);
+        }
         throw new Error(`Failed to upload ${bucket}: ${error.message}`);
       }
 
@@ -114,7 +118,14 @@ const UploadVideo = () => {
       }
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload video. Please check your bucket policies.', { id: loadingToastId });
+      // Provide more specific error messages
+      let errorMessage = error.message || 'Failed to upload video.';
+      
+      if (errorMessage.includes('permission')) {
+        errorMessage += ' Please ensure storage bucket policies are correctly configured in the Supabase Dashboard.';
+      }
+      
+      toast.error(errorMessage, { id: loadingToastId });
     } finally {
       setIsUploading(false);
     }
@@ -193,6 +204,15 @@ const UploadVideo = () => {
             </Button>
           </form>
         </Form>
+        
+        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <h3 className="font-medium text-yellow-800">Troubleshooting Tips</h3>
+          <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5 space-y-1">
+            <li>Ensure both "videos" and "thumbnails" storage buckets exist</li>
+            <li>Check that bucket policies allow authenticated uploads</li>
+            <li>Verify that public access is enabled for both buckets</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
