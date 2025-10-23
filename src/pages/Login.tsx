@@ -13,23 +13,13 @@ const LoginPage = () => {
         <h1 className="text-3xl font-bold text-center text-foreground">Welcome to MeeTube</h1>
         <p className="text-center text-muted-foreground">Sign in or create an account to continue.</p>
         <Auth
+          key={theme} {/* Add key prop to force re-render on theme change */}
           supabaseClient={supabase}
           providers={[]} // You can add 'google', 'github', etc. here if configured in Supabase
           appearance={{
             theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: 'hsl(var(--primary))',
-                  brandAccent: 'hsl(var(--primary-foreground))',
-                  // Adjust other colors to match your theme if needed
-                  // For example, if you want to match shadcn's dark mode:
-                  // inputBackground: theme === 'dark' ? 'hsl(var(--input))' : 'hsl(var(--background))',
-                  // defaultButtonBackground: theme === 'dark' ? 'hsl(var(--primary))' : 'hsl(var(--primary))',
-                  // defaultButtonText: theme === 'dark' ? 'hsl(var(--primary-foreground))' : 'hsl(var(--primary-foreground))',
-                },
-              },
-            },
+            // Removed explicit variables override to let ThemeSupa handle its default light/dark styles
+            // If custom branding is needed, it should be done more carefully to avoid conflicts.
           }}
           theme={theme === 'dark' ? 'dark' : 'light'} // Pass the current theme to Auth UI
           redirectTo={window.location.origin} // Redirects to the current origin after auth
