@@ -21,7 +21,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen p-4">
       <h1 className="text-3xl font-bold mb-8 text-center">Explore Videos</h1>
       {videos.length === 0 ? (
         <div className="text-center text-muted-foreground">
@@ -38,7 +38,7 @@ const Index = () => {
       <Dialog open={!!selectedVideo} onOpenChange={handleCloseDialog}>
         <DialogContent className="sm:max-w-[800px] p-0 border-none bg-transparent shadow-none">
           {selectedVideo && (
-            <div className="bg-background rounded-lg p-6">
+            <div className="bg-card rounded-lg p-6">
               <DialogHeader className="mb-4">
                 <DialogTitle className="text-2xl font-bold">{selectedVideo.title}</DialogTitle>
                 <DialogDescription className="text-muted-foreground">
