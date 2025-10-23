@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React from 'react'; // Explicitly import React
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
