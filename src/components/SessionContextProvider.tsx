@@ -25,12 +25,12 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
       setUser(currentSession?.user || null);
       setIsLoading(false);
 
-      if (_event === 'SIGNED_IN' && location.pathname === '/login') {
+      if (_event === 'SIGNED_IN' && location.pathname === '/auth') { // Changed from /login to /auth
         toast.success('Logged in successfully!');
         navigate('/');
       } else if (_event === 'SIGNED_OUT') {
         toast.info('You have been logged out.');
-        navigate('/login');
+        navigate('/auth'); // Changed from /login to /auth
       }
     });
 
@@ -48,7 +48,7 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
   useEffect(() => {
     const protectedRoutes = ['/upload', '/profile']; // Define routes that require authentication
     if (!isLoading && !user && protectedRoutes.includes(location.pathname)) {
-      navigate('/login');
+      navigate('/auth'); // Changed from /login to /auth
     }
   }, [isLoading, user, location.pathname, navigate]);
 
