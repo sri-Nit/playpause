@@ -39,8 +39,6 @@ const UploadVideo = () => {
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `${user?.id}/${fileName}`;
 
-      console.log(`Uploading file to bucket: ${bucket}, path: ${filePath}`);
-
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(filePath, file, {
@@ -50,25 +48,18 @@ const UploadVideo = () => {
         });
 
       if (error) {
-        console.error(`Upload error for ${bucket}:`, error);
-        // Check if it's a permissions error
         if (error.message.includes('permission')) {
-          throw new Error(`Permission denied for ${bucket}. Please check bucket policies in Supabase Dashboard.`);
+          throw new Error(`Permission denied for ${bucket}. Please check bucket policies.`);
         }
         throw new Error(`Failed to upload ${bucket}: ${error.message}`);
       }
 
-      console.log(`Upload successful for ${bucket}:`, data);
-
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
 
-      console.log(`Public URL for ${bucket}:`, publicUrl);
       return publicUrl;
     } catch (error) {
-      console.error(`Error uploading ${bucket}:`, error);
       throw error;
     }
   };
@@ -86,7 +77,6 @@ const UploadVideo = () => {
       const videoFile = values.videoFile[0];
       const thumbnailFile = values.thumbnailFile[0];
 
-      // Validate file types
       if (!videoFile.type.startsWith('video/')) {
         throw new Error('Please select a valid video file.');
       }
@@ -117,15 +107,10 @@ const UploadVideo = () => {
         throw new Error('Failed to save video metadata.');
       }
     } catch (error: any) {
-      console.error('Upload error:', error);
-      // Provide more specific error messages
       let errorMessage = error.message || 'Failed to upload video.';
       
-      // Add more specific troubleshooting for RLS errors
-      if (errorMessage.includes('row-level security')) {
-        errorMessage = 'Upload failed due to row-level security policy. Please ensure database policies are correctly configured.';
-      } else if (errorMessage.includes('permission')) {
-        errorMessage += ' Please ensure storage bucket policies are correctly configured in the Supabase Dashboard.';
+      if (errorMessage.includes('permission')) {
+        errorMessage += ' Please ensure storage bucket policies are correctly configured.';
       }
       
       toast.error(errorMessage, { id: loadingToastId });
@@ -137,7 +122,7 @@ const UploadVideo = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6 text-center">Upload Your Video</h1>
-      <div className="max-w-2xl mx-auto bg-card p-8 rounded-lg shadow-md">
+      <div className="max-w-2xl mx-auto bg-card p-6 rounded-lg shadow-md">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -214,7 +199,6 @@ const UploadVideo = () => {
             <li>Ensure both "videos" and "thumbnails" storage buckets exist</li>
             <li>Check that bucket policies allow authenticated uploads</li>
             <li>Verify that public access is enabled for both buckets</li>
-            <li>Confirm database RLS policies are correctly set for the videos table</li>
           </ul>
         </div>
       </div>

@@ -3,8 +3,8 @@ import { getVideos, Video } from '@/lib/video-store';
 import VideoCard from '@/components/VideoCard';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input'; // For search input
-import { Search } from 'lucide-react'; // For search icon
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 const Index = () => {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -16,18 +16,17 @@ const Index = () => {
     const fetchVideos = async () => {
       const fetchedVideos = await getVideos();
       setVideos(fetchedVideos);
-      setFilteredVideos(fetchedVideos); // Initialize filtered videos with all videos
+      setFilteredVideos(fetchedVideos);
     };
     fetchVideos();
   }, []);
 
   useEffect(() => {
-    // Filter videos based on search term
     const lowercasedSearchTerm = searchTerm.toLowerCase();
     const results = videos.filter(
       (video) =>
         video.title.toLowerCase().includes(lowercasedSearchTerm) ||
-        video.description?.toLowerCase().includes(lowercasedSearchTerm)
+        (video.description && video.description.toLowerCase().includes(lowercasedSearchTerm))
     );
     setFilteredVideos(results);
   }, [searchTerm, videos]);
@@ -61,7 +60,7 @@ const Index = () => {
           {searchTerm ? 'No videos found matching your search.' : 'No videos uploaded yet. Go to "Upload Video" to add some!'}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredVideos.map((video) => (
             <VideoCard key={video.id} video={video} onClick={handleVideoClick} />
           ))}

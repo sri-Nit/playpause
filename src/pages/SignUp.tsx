@@ -1,5 +1,3 @@
-"use client";
-
 import React from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
@@ -9,7 +7,7 @@ import { Link } from 'react-router-dom';
 const SignUp = () => {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-140px)] p-4">
-      <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg shadow-lg">
+      <div className="w-full max-w-md p-6 space-y-6 bg-card rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold text-center text-foreground">Create Your MeeTube Account</h1>
         <p className="text-center text-muted-foreground">Join us to upload and share your videos!</p>
         <Auth
@@ -20,7 +18,7 @@ const SignUp = () => {
           }}
           theme="light"
           redirectTo={window.location.origin}
-          initialView="sign_up" // This makes the sign-up form the default view
+          initialView="sign_up"
         />
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{' '}

@@ -97,14 +97,14 @@ const ProfilePage = () => {
           <CardDescription>Manage your account details.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Avatar className="h-20 w-20">
               <AvatarImage src={avatarUrl || user.user_metadata.avatar_url || undefined} alt={user.email || 'User'} />
               <AvatarFallback>
                 <LucideUser className="h-10 w-10 text-muted-foreground" />
               </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="text-center sm:text-left">
               <p className="text-lg font-semibold">{user.email}</p>
               <p className="text-sm text-muted-foreground">Member since: {new Date(user.created_at).toLocaleDateString()}</p>
             </div>

@@ -18,7 +18,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
             alt={video.title}
             className="rounded-t-lg object-cover w-full h-full"
             onError={(e) => {
-              e.currentTarget.src = '/placeholder.svg'; // Fallback image
+              e.currentTarget.src = '/placeholder.svg';
             }}
           />
         </AspectRatio>
