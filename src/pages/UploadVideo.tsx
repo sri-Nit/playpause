@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client'; // Import supabase client
-import { v4 as uuidv4 } from 'uuid'; // For generating unique file names
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
+import { useSession } from '@/components/SessionContextProvider';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }).max(100, { message: 'Title must not exceed 100 characters.' }),
@@ -22,6 +23,7 @@ const formSchema = z.object({
 const UploadVideo = () => {
   const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
+  const { user } = useSession();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -31,62 +33,55 @@ const UploadVideo = () => {
     },
   });
 
+  const uploadFile = async (file: File, bucket: string) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${user?.id}/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        throw new Error(`Failed to upload ${bucket}: ${error.message}`);
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error(`Error uploading ${bucket}:`, error);
+      throw error;
+    }
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast.error('You must be logged in to upload a video.');
+      return;
+    }
+
     setIsUploading(true);
     const loadingToastId = toast.loading('Uploading video...');
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('You must be logged in to upload a video.', { id: loadingToastId });
-        setIsUploading(false);
-        return;
-      }
-
       const videoFile = values.videoFile[0];
       const thumbnailFile = values.thumbnailFile[0];
 
-      // Generate unique file names
-      const videoFileName = `${uuidv4()}-${videoFile.name}`;
-      const thumbnailFileName = `${uuidv4()}-${thumbnailFile.name}`;
+      // Upload video file
+      const videoUrl = await uploadFile(videoFile, 'videos');
+      
+      // Upload thumbnail file
+      const thumbnailUrl = await uploadFile(thumbnailFile, 'thumbnails');
 
-      // Upload video file to Supabase Storage
-      const { data: videoUploadData, error: videoUploadError } = await supabase.storage
-        .from('videos') // Assuming you have a bucket named 'videos'
-        .upload(videoFileName, videoFile, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (videoUploadError) {
-        throw new Error(`Video upload failed: ${videoUploadError.message}`);
-      }
-
-      // Get public URL for the video
-      const { data: videoUrlData } = supabase.storage
-        .from('videos')
-        .getPublicUrl(videoUploadData.path);
-      const videoUrl = videoUrlData.publicUrl;
-
-      // Upload thumbnail file to Supabase Storage
-      const { data: thumbnailUploadData, error: thumbnailUploadError } = await supabase.storage
-        .from('thumbnails') // Assuming you have a bucket named 'thumbnails'
-        .upload(thumbnailFileName, thumbnailFile, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (thumbnailUploadError) {
-        throw new Error(`Thumbnail upload failed: ${thumbnailUploadError.message}`);
-      }
-
-      // Get public URL for the thumbnail
-      const { data: thumbnailUrlData } = supabase.storage
-        .from('thumbnails')
-        .getPublicUrl(thumbnailUploadData.path);
-      const thumbnailUrl = thumbnailUrlData.publicUrl;
-
-      // Add video metadata to Supabase database
+      // Add video metadata to database
       const addedVideo = await addVideoMetadata({
         title: values.title,
         description: values.description,
@@ -97,13 +92,13 @@ const UploadVideo = () => {
       if (addedVideo) {
         toast.success('Video uploaded successfully!', { id: loadingToastId });
         form.reset();
-        navigate('/'); // Redirect to home page after upload
+        navigate('/');
       } else {
         throw new Error('Failed to save video metadata.');
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to upload video.', { id: loadingToastId });
       console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload video.', { id: loadingToastId });
     } finally {
       setIsUploading(false);
     }
