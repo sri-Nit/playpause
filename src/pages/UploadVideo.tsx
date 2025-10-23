@@ -39,22 +39,29 @@ const UploadVideo = () => {
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `${user?.id}/${fileName}`;
 
+      console.log(`Uploading file to bucket: ${bucket}, path: ${filePath}`);
+
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: file.type,
         });
 
       if (error) {
+        console.error(`Upload error for ${bucket}:`, error);
         throw new Error(`Failed to upload ${bucket}: ${error.message}`);
       }
+
+      console.log(`Upload successful for ${bucket}:`, data);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
 
+      console.log(`Public URL for ${bucket}:`, publicUrl);
       return publicUrl;
     } catch (error) {
       console.error(`Error uploading ${bucket}:`, error);
@@ -75,13 +82,22 @@ const UploadVideo = () => {
       const videoFile = values.videoFile[0];
       const thumbnailFile = values.thumbnailFile[0];
 
-      // Upload video file
+      // Validate file types
+      if (!videoFile.type.startsWith('video/')) {
+        throw new Error('Please select a valid video file.');
+      }
+
+      if (!thumbnailFile.type.startsWith('image/')) {
+        throw new Error('Please select a valid image file for thumbnail.');
+      }
+
+      toast.loading('Uploading video file...', { id: loadingToastId });
       const videoUrl = await uploadFile(videoFile, 'videos');
       
-      // Upload thumbnail file
+      toast.loading('Uploading thumbnail...', { id: loadingToastId });
       const thumbnailUrl = await uploadFile(thumbnailFile, 'thumbnails');
 
-      // Add video metadata to database
+      toast.loading('Saving video metadata...', { id: loadingToastId });
       const addedVideo = await addVideoMetadata({
         title: values.title,
         description: values.description,
@@ -98,7 +114,7 @@ const UploadVideo = () => {
       }
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload video.', { id: loadingToastId });
+      toast.error(error.message || 'Failed to upload video. Please check your bucket policies.', { id: loadingToastId });
     } finally {
       setIsUploading(false);
     }
