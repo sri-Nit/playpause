@@ -18,7 +18,7 @@ const AuthPage = () => {
           }}
           theme="light"
           redirectTo={window.location.origin}
-          initialView="sign_in"
+          view="sign_in"
         />
         <p className="text-center text-sm text-muted-foreground">
           Don't have an account?{' '}

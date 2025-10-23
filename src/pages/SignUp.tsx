@@ -18,7 +18,7 @@ const SignUp = () => {
           }}
           theme="light"
           redirectTo={window.location.origin}
-          initialView="sign_up"
+          view="sign_up"
         />
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{' '}

@@ -14,7 +14,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
       <CardContent className="p-0">
         <AspectRatio ratio={16 / 9}>
           <img
-            src={video.thumbnailUrl}
+            src={video.thumbnail_url}
             alt={video.title}
             className="rounded-t-lg object-cover w-full h-full"
             onError={(e) => {
@@ -26,7 +26,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
       <CardHeader className="p-4">
         <CardTitle className="text-lg font-semibold line-clamp-2">{video.title}</CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
-          {new Date(video.uploadDate).toLocaleDateString()}
+          {new Date(video.created_at).toLocaleDateString()}
         </CardDescription>
       </CardHeader>
     </Card>
