@@ -8,9 +8,9 @@ import NotFound from "./pages/NotFound";
 import UploadVideo from "./pages/UploadVideo";
 import Layout from "./components/Layout";
 import { ThemeProvider } from "./components/ThemeProvider";
-import LoginPage from "./pages/Login"; // Import the new Login page
-import ProfilePage from "./pages/Profile"; // Import the new Profile page
-import { SessionContextProvider } from "./components/SessionContextProvider"; // Import SessionContextProvider
+import AuthPage from "./pages/AuthPage"; // Import the renamed AuthPage
+import ProfilePage from "./pages/Profile";
+import { SessionContextProvider } from "./components/SessionContextProvider";
 
 const queryClient = new QueryClient();
 
@@ -21,13 +21,13 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <SessionContextProvider> {/* Wrap the entire app with SessionContextProvider */}
+          <SessionContextProvider>
             <Layout>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/upload" element={<UploadVideo />} />
-                <Route path="/login" element={<LoginPage />} /> {/* Add Login route */}
-                <Route path="/profile" element={<ProfilePage />} /> {/* Add Profile route */}
+                <Route path="/auth" element={<AuthPage />} /> {/* Update route to /auth */}
+                <Route path="/profile" element={<ProfilePage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

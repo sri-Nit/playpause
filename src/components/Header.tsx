@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Upload, Search, Bell, User, LogOut } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
-import { useSession } from './SessionContextProvider'; // Import useSession
-import { supabase } from '@/integrations/supabase/client'; // Import supabase client
+import { useSession } from './SessionContextProvider';
+import { supabase } from '@/integrations/supabase/client';
 
 const Header = () => {
   const { user, isLoading } = useSession();
@@ -12,7 +12,7 @@ const Header = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/login');
+    navigate('/auth'); // Redirect to /auth after logout
   };
 
   return (
@@ -64,7 +64,7 @@ const Header = () => {
               </Button>
             </>
           ) : (
-            <Link to="/login">
+            <Link to="/auth"> {/* Update link to /auth */}
               <Button variant="ghost" size="icon">
                 <User className="h-4 w-4" />
                 <span className="sr-only">Login</span>

@@ -6,7 +6,7 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from 'next-themes';
 
-const LoginPage = () => {
+const AuthPage = () => {
   const { theme } = useTheme(); // Get current theme from next-themes
 
   return (
@@ -29,4 +29,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default AuthPage;
