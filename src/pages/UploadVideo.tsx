@@ -121,7 +121,10 @@ const UploadVideo = () => {
       // Provide more specific error messages
       let errorMessage = error.message || 'Failed to upload video.';
       
-      if (errorMessage.includes('permission')) {
+      // Add more specific troubleshooting for RLS errors
+      if (errorMessage.includes('row-level security')) {
+        errorMessage = 'Upload failed due to row-level security policy. Please ensure database policies are correctly configured.';
+      } else if (errorMessage.includes('permission')) {
         errorMessage += ' Please ensure storage bucket policies are correctly configured in the Supabase Dashboard.';
       }
       
@@ -211,6 +214,7 @@ const UploadVideo = () => {
             <li>Ensure both "videos" and "thumbnails" storage buckets exist</li>
             <li>Check that bucket policies allow authenticated uploads</li>
             <li>Verify that public access is enabled for both buckets</li>
+            <li>Confirm database RLS policies are correctly set for the videos table</li>
           </ul>
         </div>
       </div>
