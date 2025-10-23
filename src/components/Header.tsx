@@ -2,7 +2,6 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Upload, Search, Bell, User, LogOut } from 'lucide-react';
-import ThemeToggle from './ThemeToggle';
 import { useSession } from './SessionContextProvider';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -28,7 +27,7 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Right section: Upload, Search, Notifications, Account, Theme Toggle */}
+        {/* Right section: Upload, Search, Notifications, Account */}
         <nav className="flex items-center space-x-2 sm:space-x-4">
           <Link to="/upload">
             <Button variant="ghost" className="flex items-center gap-2">
@@ -64,14 +63,13 @@ const Header = () => {
               </Button>
             </>
           ) : (
-            <Link to="/auth"> {/* Update link to /auth */}
+            <Link to="/auth">
               <Button variant="ghost" size="icon">
                 <User className="h-4 w-4" />
                 <span className="sr-only">Login</span>
               </Button>
             </Link>
           )}
-          <ThemeToggle />
         </nav>
       </div>
     </header>

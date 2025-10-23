@@ -7,8 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import UploadVideo from "./pages/UploadVideo";
 import Layout from "./components/Layout";
-import { ThemeProvider } from "./components/ThemeProvider";
-import AuthPage from "./pages/AuthPage"; // Import the renamed AuthPage
+import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/Profile";
 import { SessionContextProvider } from "./components/SessionContextProvider";
 
@@ -16,26 +15,24 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme" attribute="class">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <SessionContextProvider>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/upload" element={<UploadVideo />} />
-                <Route path="/auth" element={<AuthPage />} /> {/* Update route to /auth */}
-                <Route path="/profile" element={<ProfilePage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
-          </SessionContextProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <SessionContextProvider>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/upload" element={<UploadVideo />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Layout>
+        </SessionContextProvider>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 
