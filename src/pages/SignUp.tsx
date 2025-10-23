@@ -4,14 +4,14 @@ import React from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
 
-const AuthPage = () => {
+const SignUp = () => {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-140px)] p-4">
       <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-center text-foreground">Welcome to MeeTube</h1>
-        <p className="text-center text-muted-foreground">Sign in or create an account to continue.</p>
+        <h1 className="text-3xl font-bold text-center text-foreground">Create Your MeeTube Account</h1>
+        <p className="text-center text-muted-foreground">Join us to upload and share your videos!</p>
         <Auth
           supabaseClient={supabase}
           providers={[]}
@@ -20,12 +20,12 @@ const AuthPage = () => {
           }}
           theme="light"
           redirectTo={window.location.origin}
-          initialView="sign_in" // Explicitly set to sign_in for this page
+          initialView="sign_up" // This makes the sign-up form the default view
         />
         <p className="text-center text-sm text-muted-foreground">
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-primary hover:underline">
-            Sign Up
+          Already have an account?{' '}
+          <Link to="/auth" className="text-primary hover:underline">
+            Sign In
           </Link>
         </p>
       </div>
@@ -33,4 +33,4 @@ const AuthPage = () => {
   );
 };
 
-export default AuthPage;
+export default SignUp;
