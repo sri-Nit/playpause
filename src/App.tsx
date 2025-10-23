@@ -7,13 +7,13 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import UploadVideo from "./pages/UploadVideo";
 import Layout from "./components/Layout";
-import { ThemeProvider } from "./components/ThemeProvider"; // Import ThemeProvider
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme"> {/* Add ThemeProvider */}
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme" attribute="class"> {/* Explicitly add attribute="class" */}
       <TooltipProvider>
         <Toaster />
         <Sonner />
