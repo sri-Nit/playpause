@@ -1,9 +1,17 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Upload, Search, Bell, User, LogOut } from 'lucide-react';
+import { Upload, Search, Bell, User, LogOut, Settings, LayoutDashboard, Users } from 'lucide-react';
 import { useSession } from './SessionContextProvider';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const { user, isLoading } = useSession();
@@ -50,18 +58,39 @@ const Header = () => {
               <span className="sr-only">Loading...</span>
             </Button>
           ) : user ? (
-            <>
-              <Link to="/profile">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <User className="h-4 w-4" />
-                  <span className="sr-only">Account</span>
+                  <span className="sr-only">Account Menu</span>
                 </Button>
-              </Link>
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
-                <LogOut className="h-4 w-4" />
-                <span className="sr-only">Logout</span>
-              </Button>
-            </>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => console.log('Switch Account clicked')}>
+                  <Users className="mr-2 h-4 w-4" />
+                  <span>Switch Account</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => console.log('MeeTube Studio clicked')}>
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span>MeeTube Studio</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => console.log('Settings clicked')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Link to="/auth">
               <Button variant="ghost" size="icon">
