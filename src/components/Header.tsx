@@ -1,10 +1,20 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Upload, Search, Bell, User } from 'lucide-react';
-import ThemeToggle from './ThemeToggle'; // Import ThemeToggle
+import { Upload, Search, Bell, User, LogOut } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
+import { useSession } from './SessionContextProvider'; // Import useSession
+import { supabase } from '@/integrations/supabase/client'; // Import supabase client
 
 const Header = () => {
+  const { user, isLoading } = useSession();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
@@ -34,10 +44,33 @@ const Header = () => {
             <Bell className="h-4 w-4" />
             <span className="sr-only">Notifications</span>
           </Button>
-          <Button variant="ghost" size="icon">
-            <User className="h-4 w-4" />
-            <span className="sr-only">Account</span>
-          </Button>
+
+          {isLoading ? (
+            <Button variant="ghost" size="icon" disabled>
+              <User className="h-4 w-4" />
+              <span className="sr-only">Loading...</span>
+            </Button>
+          ) : user ? (
+            <>
+              <Link to="/profile">
+                <Button variant="ghost" size="icon">
+                  <User className="h-4 w-4" />
+                  <span className="sr-only">Account</span>
+                </Button>
+              </Link>
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only">Logout</span>
+              </Button>
+            </>
+          ) : (
+            <Link to="/login">
+              <Button variant="ghost" size="icon">
+                <User className="h-4 w-4" />
+                <span className="sr-only">Login</span>
+              </Button>
+            </Link>
+          )}
           <ThemeToggle />
         </nav>
       </div>
