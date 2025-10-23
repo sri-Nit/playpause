@@ -1,40 +1,62 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'; // Still useful for client-side ID generation if needed, but Supabase will handle primary keys
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Video {
   id: string;
+  user_id: string; // Added user_id to link videos to users
   title: string;
   description: string;
-  videoUrl: string;
-  thumbnailUrl: string;
-  uploadDate: string;
+  video_url: string; // Changed from videoUrl to video_url for Supabase convention
+  thumbnail_url: string; // Changed from thumbnailUrl to thumbnail_url for Supabase convention
+  created_at: string; // Changed from uploadDate to created_at for Supabase convention
 }
 
-const LOCAL_STORAGE_KEY = 'meetupe_videos';
+// Function to get all videos from Supabase
+export const getVideos = async (): Promise<Video[]> => {
+  const { data, error } = await supabase
+    .from('videos')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-// Function to get all videos from local storage
-export const getVideos = (): Video[] => {
-  if (typeof window === 'undefined') {
+  if (error) {
+    console.error('Error fetching videos:', error);
     return [];
   }
-  const videosJson = localStorage.getItem(LOCAL_STORAGE_KEY);
-  return videosJson ? JSON.parse(videosJson) : [];
+  return data as Video[];
 };
 
-// Function to add a new video to local storage
-export const addVideo = (newVideo: Omit<Video, 'id' | 'uploadDate'>): Video => {
-  const videos = getVideos();
-  const videoWithId: Video = {
-    id: uuidv4(),
-    uploadDate: new Date().toISOString(),
-    ...newVideo,
-  };
-  videos.push(videoWithId);
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(videos));
-  return videoWithId;
+// Function to add a new video to Supabase (metadata only, files handled separately)
+export const addVideoMetadata = async (newVideo: Omit<Video, 'id' | 'created_at' | 'user_id'>, userId: string): Promise<Video | null> => {
+  const { data, error } = await supabase
+    .from('videos')
+    .insert({
+      user_id: userId,
+      title: newVideo.title,
+      description: newVideo.description,
+      video_url: newVideo.video_url,
+      thumbnail_url: newVideo.thumbnail_url,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding video metadata:', error);
+    return null;
+  }
+  return data as Video;
 };
 
-// Function to get a single video by ID
-export const getVideoById = (id: string): Video | undefined => {
-  const videos = getVideos();
-  return videos.find(video => video.id === id);
+// Function to get a single video by ID from Supabase
+export const getVideoById = async (id: string): Promise<Video | undefined> => {
+  const { data, error } = await supabase
+    .from('videos')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching video by ID:', error);
+    return undefined;
+  }
+  return data as Video;
 };
