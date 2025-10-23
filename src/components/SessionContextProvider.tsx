@@ -44,9 +44,10 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
     return () => subscription.unsubscribe();
   }, [navigate, location.pathname]);
 
-  // Redirect unauthenticated users from protected routes
+  // Redirect unauthenticated users from protected routes, but allow home page
   useEffect(() => {
-    if (!isLoading && !user && location.pathname !== '/login') {
+    const protectedRoutes = ['/upload', '/profile']; // Define routes that require authentication
+    if (!isLoading && !user && protectedRoutes.includes(location.pathname)) {
       navigate('/login');
     }
   }, [isLoading, user, location.pathname, navigate]);
