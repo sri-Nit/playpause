@@ -1,33 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { getVideos, Video } from '@/lib/video-store';
+import React from 'react';
+import { useVideos } from '@/hooks/use-video-data'; // Import the new hook
 import VideoCard from '@/components/VideoCard';
 
 const Index = () => {
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const fetchedVideos = await getVideos(); // getVideos now only fetches published videos
-        setVideos(fetchedVideos);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch videos.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchVideos();
-  }, []);
+  const { data: videos = [], isLoading, error } = useVideos(); // Use the useVideos hook
 
   if (isLoading) {
     return <div className="text-center text-muted-foreground">Loading videos...</div>;
   }
 
   if (error) {
-    return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">{error}</div>;
+    return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">Error: {error.message}</div>;
   }
 
   return (
