@@ -4,7 +4,7 @@ import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLi
 import VideoPlayer from '@/components/VideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag } from 'lucide-react';
 import { useSession } from '@/components/SessionContextProvider';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface CommentWithProfile extends Comment {
   profiles: Profile;
+  replies?: CommentWithProfile[]; // For nested replies
 }
 
 const WatchVideo = () => {
@@ -36,58 +37,84 @@ const WatchVideo = () => {
   const [editTags, setEditTags] = useState('');
   const [isFollowingUploader, setIsFollowingUploader] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+
+  const fetchVideoDetails = useCallback(async () => {
+    if (!id) {
+      setError('Video ID is missing.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const fetchedVideo = await getVideoById(id);
+      if (fetchedVideo) {
+        // Only allow viewing if published or if the current user is the owner
+        if (fetchedVideo.status === 'draft' && (!user || user.id !== fetchedVideo.user_id)) {
+          setError('This video is a draft and not publicly available.');
+          setVideo(null);
+          setIsLoading(false);
+          return;
+        }
+
+        setVideo(fetchedVideo);
+        
+        // Increment view count only for published videos
+        if (fetchedVideo.status === 'published') {
+          await incrementVideoView(id);
+        }
+
+        const fetchedProfile = await getProfileById(fetchedVideo.user_id);
+        setUploaderProfile(fetchedProfile);
+
+        const fetchedLikes = await getLikesForVideo(id);
+        setLikes(fetchedLikes.length);
+        if (user) {
+          setIsLiked(fetchedLikes.some(like => like.user_id === user.id));
+          // Check subscription status
+          if (fetchedVideo.user_id !== user.id) { // Don't show follow button for own videos
+            const followingStatus = await isFollowing(user.id, fetchedVideo.user_id);
+            setIsFollowingUploader(followingStatus);
+          }
+        }
+
+        const fetchedComments = await getCommentsForVideo(id);
+        // Organize comments into a tree structure for replies
+        const commentMap = new Map<string, CommentWithProfile>();
+        fetchedComments.forEach(comment => {
+          commentMap.set(comment.id, { ...comment, replies: [] });
+        });
+
+        const rootComments: CommentWithProfile[] = [];
+        fetchedComments.forEach(comment => {
+          if (comment.parent_comment_id && commentMap.has(comment.parent_comment_id)) {
+            commentMap.get(comment.parent_comment_id)?.replies?.push(commentMap.get(comment.id)!);
+          } else {
+            rootComments.push(commentMap.get(comment.id)!);
+          }
+        });
+        setComments(rootComments);
+
+        setEditTitle(fetchedVideo.title);
+        setEditDescription(fetchedVideo.description || '');
+        setEditTags(fetchedVideo.tags?.join(', ') || '');
+      } else {
+        setError('Video not found.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch video details.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id, user]);
 
   useEffect(() => {
-    const fetchVideoDetails = async () => {
-      if (!id) {
-        setError('Video ID is missing.');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const fetchedVideo = await getVideoById(id);
-        if (fetchedVideo) {
-          setVideo(fetchedVideo);
-          
-          // Increment view count
-          await incrementVideoView(id);
-
-          const fetchedProfile = await getProfileById(fetchedVideo.user_id);
-          setUploaderProfile(fetchedProfile);
-
-          const fetchedLikes = await getLikesForVideo(id);
-          setLikes(fetchedLikes.length);
-          if (user) {
-            setIsLiked(fetchedLikes.some(like => like.user_id === user.id));
-            // Check subscription status
-            if (fetchedVideo.user_id !== user.id) { // Don't show follow button for own videos
-              const followingStatus = await isFollowing(user.id, fetchedVideo.user_id);
-              setIsFollowingUploader(followingStatus);
-            }
-          }
-
-          const fetchedComments = await getCommentsForVideo(id);
-          setComments(fetchedComments as CommentWithProfile[]);
-
-          setEditTitle(fetchedVideo.title);
-          setEditDescription(fetchedVideo.description || '');
-          setEditTags(fetchedVideo.tags?.join(', ') || '');
-        } else {
-          setError('Video not found.');
-        }
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch video details.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (!isSessionLoading) {
       fetchVideoDetails();
     }
-  }, [id, user, isSessionLoading]);
+  }, [isSessionLoading, fetchVideoDetails]);
 
   const handleLikeToggle = async () => {
     if (!user) {
@@ -114,28 +141,25 @@ const WatchVideo = () => {
     }
   };
 
-  const handlePostComment = async () => {
+  const handlePostComment = async (parentCommentId: string | null = null) => {
     if (!user) {
       toast.error('You must be logged in to post a comment.');
       return;
     }
-    if (!id || !newCommentText.trim()) {
+    const textToPost = parentCommentId ? replyText : newCommentText;
+    if (!id || !textToPost.trim()) {
       toast.error('Comment cannot be empty.');
       return;
     }
 
     try {
-      const addedComment = await addComment(id, user.id, newCommentText);
+      const addedComment = await addComment(id, user.id, textToPost, parentCommentId);
       if (addedComment) {
-        // Manually add profile data for the new comment
-        const userProfile = await getProfileById(user.id);
-        const commentWithProfile: CommentWithProfile = {
-          ...addedComment,
-          profiles: userProfile || { id: user.id, first_name: null, last_name: null, avatar_url: null },
-        };
-        setComments(prev => [...prev, commentWithProfile]);
+        toast.success(parentCommentId ? 'Reply posted!' : 'Comment posted!');
         setNewCommentText('');
-        toast.success('Comment posted!');
+        setReplyText('');
+        setReplyingToCommentId(null);
+        fetchVideoDetails(); // Re-fetch comments to update the tree structure
       }
     } catch (err: any) {
       toast.error(err.message || 'Failed to post comment.');
@@ -150,8 +174,8 @@ const WatchVideo = () => {
     }
     try {
       await deleteComment(commentId);
-      setComments(prev => prev.filter(comment => comment.id !== commentId));
       toast.success('Comment deleted!');
+      fetchVideoDetails(); // Re-fetch comments to update the tree structure
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete comment.');
       console.error(err);
@@ -236,6 +260,47 @@ const WatchVideo = () => {
     }
   };
 
+  const renderComments = (commentList: CommentWithProfile[]) => (
+    commentList.map((comment) => (
+      <div key={comment.id} className="flex items-start space-x-3">
+        <Avatar className="h-8 w-8">
+          <AvatarImage src={comment.profiles?.avatar_url || undefined} alt={comment.profiles?.first_name || 'Commenter'} />
+          <AvatarFallback>
+            <LucideUser className="h-4 w-4 text-muted-foreground" />
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold text-sm">
+              {comment.profiles?.first_name} {comment.profiles?.last_name}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {new Date(comment.created_at).toLocaleString()}
+            </span>
+          </div>
+          <p className="text-sm">{comment.text}</p>
+          <div className="flex space-x-2 mt-2">
+            {user && user.id === comment.user_id && (
+              <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-red-500 hover:text-red-700" onClick={() => handleDeleteComment(comment.id)}>
+                Delete
+              </Button>
+            )}
+            {user && (
+              <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-primary hover:text-primary/80" onClick={() => { setReplyingToCommentId(comment.id); setReplyText(''); }}>
+                Reply
+              </Button>
+            )}
+          </div>
+          {comment.replies && comment.replies.length > 0 && (
+            <div className="ml-8 mt-4 space-y-4 border-l pl-4">
+              {renderComments(comment.replies)}
+            </div>
+          )}
+        </div>
+      </div>
+    ))
+  );
+
   if (isLoading) {
     return <div className="text-center text-muted-foreground">Loading video...</div>;
   }
@@ -259,6 +324,7 @@ const WatchVideo = () => {
           <div className="flex items-center space-x-4">
             <p>{video.views} views</p>
             <p>{new Date(video.created_at).toLocaleDateString()}</p>
+            {video.status === 'draft' && <Badge variant="secondary">Draft</Badge>}
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="icon" onClick={handleLikeToggle} className={isLiked ? 'text-red-500' : ''}>
@@ -274,6 +340,11 @@ const WatchVideo = () => {
                   <Trash2 className="h-5 w-5 text-red-500" />
                 </Button>
               </>
+            )}
+            {!isOwner && user && (
+              <Button variant="ghost" size="icon" onClick={() => toast.info('Reporting feature coming soon!')}>
+                <Flag className="h-5 w-5" />
+              </Button>
             )}
           </div>
         </div>
@@ -320,38 +391,13 @@ const WatchVideo = () => {
                 onChange={(e) => setNewCommentText(e.target.value)}
                 className="mb-2"
               />
-              <Button onClick={handlePostComment} disabled={!newCommentText.trim()}>
+              <Button onClick={() => handlePostComment()} disabled={!newCommentText.trim()}>
                 Post Comment
               </Button>
             </div>
           )}
           <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment.id} className="flex items-start space-x-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={comment.profiles?.avatar_url || undefined} alt={comment.profiles?.first_name || 'Commenter'} />
-                  <AvatarFallback>
-                    <LucideUser className="h-4 w-4 text-muted-foreground" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-sm">
-                      {comment.profiles?.first_name} {comment.profiles?.last_name}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(comment.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="text-sm">{comment.text}</p>
-                  {user && user.id === comment.user_id && (
-                    <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-red-500 hover:text-red-700" onClick={() => handleDeleteComment(comment.id)}>
-                      Delete
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
+            {renderComments(comments)}
           </div>
         </div>
       </div>
@@ -430,6 +476,30 @@ const WatchVideo = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleEditVideo} disabled={isSubscribing}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reply Dialog (for WatchVideo page) */}
+      <Dialog open={!!replyingToCommentId} onOpenChange={() => setReplyingToCommentId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reply to Comment</DialogTitle>
+            <DialogDescription>
+              Replying to a comment.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              placeholder="Write your reply..."
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReplyingToCommentId(null)}>Cancel</Button>
+            <Button onClick={() => handlePostComment(replyingToCommentId)} disabled={!replyText.trim()}>Post Reply</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

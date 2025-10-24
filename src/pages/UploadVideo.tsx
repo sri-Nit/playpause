@@ -18,7 +18,7 @@ const formSchema = z.object({
   description: z.string().max(500, { message: 'Description must not exceed 500 characters.' }).optional(),
   videoFile: z.any().refine((file) => file?.length > 0, 'Video file is required.'),
   thumbnailFile: z.any().refine((file) => file?.length > 0, 'Thumbnail file is required.'),
-  tags: z.string().optional(), // New field for tags
+  tags: z.string().optional(),
 });
 
 const UploadVideo = () => {
@@ -31,7 +31,7 @@ const UploadVideo = () => {
     defaultValues: {
       title: '',
       description: '',
-      tags: '', // Default value for tags
+      tags: '',
     },
   });
 
@@ -66,14 +66,14 @@ const UploadVideo = () => {
     }
   };
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>, status: 'draft' | 'published') => {
     if (!user) {
       toast.error('You must be logged in to upload a video.');
       return;
     }
 
     setIsUploading(true);
-    const loadingToastId = toast.loading('Uploading video...');
+    const loadingToastId = toast.loading(status === 'published' ? 'Uploading video...' : 'Saving video as draft...');
 
     try {
       const videoFile = values.videoFile[0];
@@ -101,13 +101,13 @@ const UploadVideo = () => {
         description: values.description,
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
-        tags: videoTags, // Pass tags to the metadata function
-      }, user.id);
+        tags: videoTags,
+      }, user.id, status); // Pass status here
 
       if (addedVideo) {
-        toast.success('Video uploaded successfully!', { id: loadingToastId });
+        toast.success(status === 'published' ? 'Video uploaded successfully!' : 'Video saved as draft!', { id: loadingToastId });
         form.reset();
-        navigate('/');
+        navigate('/dashboard'); // Redirect to dashboard after upload/draft
       } else {
         throw new Error('Failed to save video metadata.');
       }
@@ -129,7 +129,7 @@ const UploadVideo = () => {
       <h1 className="text-3xl font-bold mb-6 text-center">Upload Your Video</h1>
       <div className="max-w-2xl mx-auto bg-card p-6 rounded-lg shadow-md">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-6"> {/* Prevent default form submission */}
             <FormField
               control={form.control}
               name="title"
@@ -205,9 +205,14 @@ const UploadVideo = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isUploading}>
-              {isUploading ? 'Uploading...' : 'Upload Video'}
-            </Button>
+            <div className="flex space-x-4">
+              <Button type="button" className="w-full" onClick={form.handleSubmit((values) => onSubmit(values, 'published'))} disabled={isUploading}>
+                {isUploading ? 'Uploading...' : 'Upload Video'}
+              </Button>
+              <Button type="button" variant="outline" className="w-full" onClick={form.handleSubmit((values) => onSubmit(values, 'draft'))} disabled={isUploading}>
+                {isUploading ? 'Saving Draft...' : 'Save as Draft'}
+              </Button>
+            </div>
           </form>
         </Form>
         

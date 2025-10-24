@@ -9,7 +9,8 @@ export interface Video {
   thumbnail_url: string;
   created_at: string;
   views: number;
-  tags: string[] | null; // Added tags column
+  tags: string[] | null;
+  status: 'draft' | 'published'; // Added status column
 }
 
 export interface Profile {
@@ -33,6 +34,7 @@ export interface Comment {
   text: string;
   created_at: string;
   profiles: Profile;
+  parent_comment_id: string | null; // Added parent_comment_id
 }
 
 export interface Subscription {
@@ -42,12 +44,22 @@ export interface Subscription {
   created_at: string;
 }
 
+export interface Report {
+  id: string;
+  reporter_id: string;
+  video_id: string;
+  reason: string;
+  created_at: string;
+  resolved: boolean;
+}
+
 // Function to get all videos from Supabase
 export const getVideos = async (): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
       .select('*')
+      .eq('status', 'published') // Only fetch published videos for general browsing
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -62,8 +74,28 @@ export const getVideos = async (): Promise<Video[]> => {
   }
 };
 
+// Function to get all videos for a specific creator (including drafts)
+export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching creator videos:', error);
+      throw new Error(error.message);
+    }
+    return data as Video[];
+  } catch (error) {
+    console.error('Unexpected error fetching creator videos:', error);
+    throw error;
+  }
+};
+
 // Function to add a new video to Supabase (metadata only, files handled separately)
-export const addVideoMetadata = async (newVideo: Omit<Video, 'id' | 'created_at' | 'user_id' | 'views'>, userId: string): Promise<Video | null> => {
+export const addVideoMetadata = async (newVideo: Omit<Video, 'id' | 'created_at' | 'user_id' | 'views' | 'status'>, userId: string, status: 'draft' | 'published' = 'published'): Promise<Video | null> => {
   try {
     const { data, error } = await supabase
       .from('videos')
@@ -73,7 +105,8 @@ export const addVideoMetadata = async (newVideo: Omit<Video, 'id' | 'created_at'
         description: newVideo.description,
         video_url: newVideo.video_url,
         thumbnail_url: newVideo.thumbnail_url,
-        tags: newVideo.tags, // Include tags
+        tags: newVideo.tags,
+        status: status, // Include status
       })
       .select()
       .single();
@@ -225,11 +258,11 @@ export const getCommentsForVideo = async (videoId: string): Promise<Comment[]> =
 };
 
 // Function to add a comment
-export const addComment = async (videoId: string, userId: string, text: string): Promise<Comment | null> => {
+export const addComment = async (videoId: string, userId: string, text: string, parentCommentId: string | null = null): Promise<Comment | null> => {
   try {
     const { data, error } = await supabase
       .from('comments')
-      .insert({ video_id: videoId, user_id: userId, text })
+      .insert({ video_id: videoId, user_id: userId, text, parent_comment_id: parentCommentId })
       .select('*, profiles(first_name, last_name, avatar_url)')
       .single();
 
@@ -279,6 +312,27 @@ export const updateVideoMetadata = async (videoId: string, updatedFields: Partia
     return data as Video;
   } catch (error) {
     console.error('Unexpected error updating video metadata:', error);
+    throw error;
+  }
+};
+
+// Function to update video status
+export const updateVideoStatus = async (videoId: string, status: 'draft' | 'published'): Promise<Video | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('videos')
+      .update({ status: status })
+      .eq('id', videoId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating video status:', error);
+      throw new Error(error.message);
+    }
+    return data as Video;
+  } catch (error) {
+    console.error('Unexpected error updating video status:', error);
     throw error;
   }
 };
@@ -407,6 +461,7 @@ export const searchVideos = async (query: string): Promise<Video[]> => {
     const { data, error } = await supabase
       .from('videos')
       .select('*')
+      .eq('status', 'published') // Only search published videos
       .or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
       .order('created_at', { ascending: false });
 
@@ -417,6 +472,184 @@ export const searchVideos = async (query: string): Promise<Video[]> => {
     return data as Video[];
   } catch (error) {
     console.error('Unexpected error searching videos:', error);
+    throw error;
+  }
+};
+
+// --- Admin & Analytics Functions ---
+
+// Function to get total users
+export const getTotalUsers = async (): Promise<number> => {
+  try {
+    const { count, error } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('Error fetching total users:', error);
+      throw new Error(error.message);
+    }
+    return count || 0;
+  } catch (error) {
+    console.error('Unexpected error fetching total users:', error);
+    throw error;
+  }
+};
+
+// Function to get total videos
+export const getTotalVideos = async (): Promise<number> => {
+  try {
+    const { count, error } = await supabase
+      .from('videos')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('Error fetching total videos:', error);
+      throw new Error(error.message);
+    }
+    return count || 0;
+  } catch (error) {
+    console.error('Unexpected error fetching total videos:', error);
+    throw error;
+  }
+};
+
+// Function to get total reports
+export const getTotalReports = async (): Promise<number> => {
+  try {
+    const { count, error } = await supabase
+      .from('reports')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('Error fetching total reports:', error);
+      throw new Error(error.message);
+    }
+    return count || 0;
+  } catch (error) {
+    console.error('Unexpected error fetching total reports:', error);
+    throw error;
+  }
+};
+
+// Function to get all reports
+export const getAllReports = async (): Promise<Report[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all reports:', error);
+      throw new Error(error.message);
+    }
+    return data as Report[];
+  } catch (error) {
+    console.error('Unexpected error fetching all reports:', error);
+    throw error;
+  }
+};
+
+// Function to resolve a report
+export const resolveReport = async (reportId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('reports')
+      .update({ resolved: true })
+      .eq('id', reportId);
+
+    if (error) {
+      console.error('Error resolving report:', error);
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    console.error('Unexpected error resolving report:', error);
+    throw error;
+  }
+};
+
+// Function to delete a report
+export const deleteReport = async (reportId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('reports')
+      .delete()
+      .eq('id', reportId);
+
+    if (error) {
+      console.error('Error deleting report:', error);
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    console.error('Unexpected error deleting report:', error);
+    throw error;
+  }
+};
+
+// Function to add a report
+export const addReport = async (reporterId: string, videoId: string, reason: string): Promise<Report | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('reports')
+      .insert({ reporter_id: reporterId, video_id: videoId, reason })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding report:', error);
+      throw new Error(error.message);
+    }
+    return data as Report;
+  } catch (error) {
+    console.error('Unexpected error adding report:', error);
+    throw error;
+  }
+};
+
+// Function to get analytics for a specific video (likes and comments count)
+export const getVideoAnalytics = async (videoId: string) => {
+  try {
+    const { count: likesCount, error: likesError } = await supabase
+      .from('likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('video_id', videoId);
+
+    if (likesError) throw new Error(likesError.message);
+
+    const { count: commentsCount, error: commentsError } = await supabase
+      .from('comments')
+      .select('*', { count: 'exact', head: true })
+      .eq('video_id', videoId);
+
+    if (commentsError) throw new Error(commentsError.message);
+
+    return {
+      likes: likesCount || 0,
+      comments: commentsCount || 0,
+    };
+  } catch (error) {
+    console.error('Error fetching video analytics:', error);
+    throw error;
+  }
+};
+
+// Function to get all comments for a creator's videos
+export const getCommentsForCreatorVideos = async (userId: string): Promise<Comment[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*, profiles(first_name, last_name, avatar_url), videos(title)')
+      .in('video_id', supabase.from('videos').select('id').eq('user_id', userId))
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching comments for creator videos:', error);
+      throw new Error(error.message);
+    }
+    return data as Comment[];
+  } catch (error) {
+    console.error('Unexpected error fetching comments for creator videos:', error);
     throw error;
   }
 };

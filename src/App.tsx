@@ -11,7 +11,8 @@ import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/Profile";
 import SignUp from "./pages/SignUp";
 import WatchVideo from "./pages/WatchVideo";
-import SearchResults from "./pages/SearchResults"; // Import the new SearchResults page
+import SearchResults from "./pages/SearchResults";
+import CreatorDashboard from "./pages/CreatorDashboard"; // Import the new CreatorDashboard page
 import { SessionContextProvider } from "./components/SessionContextProvider";
 
 const queryClient = new QueryClient();
@@ -31,7 +32,8 @@ const App = () => (
               <Route path="/signup" element={<SignUp />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/watch/:id" element={<WatchVideo />} />
-              <Route path="/search" element={<SearchResults />} /> {/* Add the new search results route */}
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/dashboard" element={<CreatorDashboard />} /> {/* Add the new creator dashboard route */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

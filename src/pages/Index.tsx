@@ -10,7 +10,7 @@ const Index = () => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const fetchedVideos = await getVideos();
+        const fetchedVideos = await getVideos(); // getVideos now only fetches published videos
         setVideos(fetchedVideos);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch videos.');
