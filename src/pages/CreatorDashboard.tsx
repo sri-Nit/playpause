@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, VideoIcon, MessageCircle, BarChart, Trash2, Reply } from 'lucide-react';
+import { PlusCircle, VideoIcon, MessageCircle, BarChart, Trash2, Reply, Eye, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   getCreatorVideos,
-  getVideoAnalytics,
+  getVideoAnalytics, // Now takes an array of video IDs
   getCommentsForCreatorVideos,
   deleteComment,
   addComment,
@@ -25,10 +25,15 @@ interface CommentWithVideoTitle extends Comment {
   videos: { title: string };
 }
 
+interface VideoWithAnalytics extends Video {
+  likesCount: number;
+  commentsCount: number;
+}
+
 const CreatorDashboard = () => {
   const { user, isLoading: isSessionLoading } = useSession();
   const navigate = useNavigate();
-  const [creatorVideos, setCreatorVideos] = useState<Video[]>([]);
+  const [creatorVideos, setCreatorVideos] = useState<VideoWithAnalytics[]>([]);
   const [allComments, setAllComments] = useState<CommentWithVideoTitle[]>([]);
   const [totalViews, setTotalViews] = useState(0);
   const [totalLikes, setTotalLikes] = useState(0);
@@ -44,19 +49,22 @@ const CreatorDashboard = () => {
     setIsLoading(true);
     try {
       const videos = await getCreatorVideos(user.id);
-      setCreatorVideos(videos);
+      const videoIds = videos.map(v => v.id);
+      const analyticsMap = await getVideoAnalytics(videoIds);
 
       let viewsCount = 0;
       let likesCount = 0;
       let commentsCount = 0;
 
-      for (const video of videos) {
+      const videosWithAnalytics: VideoWithAnalytics[] = videos.map(video => {
+        const analytics = analyticsMap[video.id] || { likes: 0, comments: 0 };
         viewsCount += video.views;
-        const analytics = await getVideoAnalytics(video.id);
         likesCount += analytics.likes;
         commentsCount += analytics.comments;
-      }
+        return { ...video, likesCount: analytics.likes, commentsCount: analytics.comments };
+      });
 
+      setCreatorVideos(videosWithAnalytics);
       setTotalViews(viewsCount);
       setTotalLikes(likesCount);
       setTotalComments(commentsCount);
@@ -206,6 +214,8 @@ const CreatorDashboard = () => {
                 <CreatorVideoCard
                   key={video.id}
                   video={video}
+                  initialLikes={video.likesCount}
+                  initialComments={video.commentsCount}
                   onVideoUpdated={handleVideoUpdated}
                   onVideoDeleted={handleVideoDeleted}
                 />

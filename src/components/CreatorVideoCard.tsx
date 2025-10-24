@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Video, getVideoAnalytics, deleteVideo, updateVideoMetadata, updateVideoStatus } from '@/lib/video-store';
+import { Video, deleteVideo, updateVideoMetadata, updateVideoStatus } from '@/lib/video-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Button } from '@/components/ui/button';
@@ -15,12 +15,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface CreatorVideoCardProps {
   video: Video;
+  initialLikes: number; // New prop for initial likes count
+  initialComments: number; // New prop for initial comments count
   onVideoUpdated: () => void; // Callback to refresh video list
   onVideoDeleted: () => void; // Callback to refresh video list
 }
 
-const CreatorVideoCard: React.FC<CreatorVideoCardProps> = ({ video, onVideoUpdated, onVideoDeleted }) => {
-  const [analytics, setAnalytics] = useState<{ likes: number; comments: number } | null>(null);
+const CreatorVideoCard: React.FC<CreatorVideoCardProps> = ({ video, initialLikes, initialComments, onVideoUpdated, onVideoDeleted }) => {
+  // Use initial props for analytics, no longer fetching internally
+  const [likes, setLikes] = useState(initialLikes);
+  const [comments, setComments] = useState(initialComments);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(video.title);
@@ -29,17 +33,11 @@ const CreatorVideoCard: React.FC<CreatorVideoCardProps> = ({ video, onVideoUpdat
   const [editStatus, setEditStatus] = useState<'draft' | 'published'>(video.status);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Update local state if initial props change (e.g., after a dashboard refresh)
   React.useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const data = await getVideoAnalytics(video.id);
-        setAnalytics(data);
-      } catch (error) {
-        console.error('Failed to fetch video analytics:', error);
-      }
-    };
-    fetchAnalytics();
-  }, [video.id]);
+    setLikes(initialLikes);
+    setComments(initialComments);
+  }, [initialLikes, initialComments]);
 
   const handleDeleteVideo = async () => {
     const loadingToastId = toast.loading('Deleting video...');
@@ -115,10 +113,10 @@ const CreatorVideoCard: React.FC<CreatorVideoCardProps> = ({ video, onVideoUpdat
             <Eye className="h-4 w-4" /> <span>{video.views}</span>
           </div>
           <div className="flex items-center space-x-2">
-            <Heart className="h-4 w-4" /> <span>{analytics?.likes ?? 0}</span>
+            <Heart className="h-4 w-4" /> <span>{likes ?? 0}</span>
           </div>
           <div className="flex items-center space-x-2">
-            <MessageCircle className="h-4 w-4" /> <span>{analytics?.comments ?? 0}</span>
+            <MessageCircle className="h-4 w-4" /> <span>{comments ?? 0}</span>
           </div>
         </div>
       </CardHeader>

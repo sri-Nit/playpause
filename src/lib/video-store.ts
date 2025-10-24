@@ -608,31 +608,51 @@ export const addReport = async (reporterId: string, videoId: string, reason: str
 };
 
 // Function to get analytics for a specific video (likes and comments count)
-export const getVideoAnalytics = async (videoId: string) => {
+// This function is now optimized to fetch counts in bulk if given multiple video IDs
+export const getVideoAnalytics = async (videoIds: string[]): Promise<Record<string, { likes: number; comments: number }>> => {
+  if (videoIds.length === 0) {
+    return {};
+  }
+
   try {
-    const { count: likesCount, error: likesError } = await supabase
+    const { data: likesData, error: likesError } = await supabase
       .from('likes')
-      .select('*', { count: 'exact', head: true })
-      .eq('video_id', videoId);
+      .select('video_id', { count: 'exact' })
+      .in('video_id', videoIds);
 
     if (likesError) throw new Error(likesError.message);
 
-    const { count: commentsCount, error: commentsError } = await supabase
+    const { data: commentsData, error: commentsError } = await supabase
       .from('comments')
-      .select('*', { count: 'exact', head: true })
-      .eq('video_id', videoId);
+      .select('video_id', { count: 'exact' })
+      .in('video_id', videoIds);
 
     if (commentsError) throw new Error(commentsError.message);
 
-    return {
-      likes: likesCount || 0,
-      comments: commentsCount || 0,
-    };
+    const analyticsMap: Record<string, { likes: number; comments: number }> = {};
+    videoIds.forEach(id => {
+      analyticsMap[id] = { likes: 0, comments: 0 };
+    });
+
+    likesData.forEach((item: any) => {
+      if (analyticsMap[item.video_id]) {
+        analyticsMap[item.video_id].likes++;
+      }
+    });
+
+    commentsData.forEach((item: any) => {
+      if (analyticsMap[item.video_id]) {
+        analyticsMap[item.video_id].comments++;
+      }
+    });
+
+    return analyticsMap;
   } catch (error) {
     console.error('Error fetching video analytics:', error);
     throw error;
   }
 };
+
 
 // Function to get all comments for a creator's videos
 export const getCommentsForCreatorVideos = async (userId: string): Promise<Comment[]> => {
