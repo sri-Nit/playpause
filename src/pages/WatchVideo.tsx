@@ -1,26 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import {
-  incrementVideoView,
-  addLike,
-  removeLike,
-  addComment,
-  deleteComment,
-  deleteVideo,
-  isFollowing,
-  addSubscription,
-  removeSubscription,
-  updateVideoMetadata,
-  Video,
-  Profile,
-  Comment,
-} from '@/lib/video-store';
-import {
-  useVideoById,
-  useProfileById,
-  useLikesForVideo,
-  useCommentsForVideo,
-} from '@/hooks/use-video-data'; // Import new hooks
+import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata } from '@/lib/video-store';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -32,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 
 interface CommentWithProfile extends Comment {
   profiles: Profile;
@@ -43,8 +22,14 @@ const WatchVideo = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isLoading: isSessionLoading } = useSession();
-  const queryClient = useQueryClient(); // Initialize query client
-
+  const [video, setVideo] = useState<Video | null>(null);
+  const [uploaderProfile, setUploaderProfile] = useState<Profile | null>(null);
+  const [likes, setLikes] = useState<number>(0);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [comments, setComments] = useState<CommentWithProfile[]>([]);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
@@ -55,65 +40,81 @@ const WatchVideo = () => {
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
-  // Fetch video details using react-query
-  const { data: video, isLoading: isVideoLoading, error: videoError } = useVideoById(id || '');
-  // Fetch uploader profile using react-query
-  const { data: uploaderProfile, isLoading: isProfileLoading, error: profileError } = useProfileById(video?.user_id || '');
-  // Fetch likes for the video using react-query
-  const { data: fetchedLikes = [], isLoading: isLikesLoading, error: likesError, refetch: refetchLikes } = useLikesForVideo(id || '');
-  // Fetch comments for the video using react-query
-  const { data: fetchedComments = [], isLoading: isCommentsLoading, error: commentsError, refetch: refetchComments } = useCommentsForVideo(id || '');
-
-  const likes = fetchedLikes.length;
-  const isLiked = user ? fetchedLikes.some(like => like.user_id === user.id) : false;
-
-  // Organize comments into a tree structure for replies
-  const comments: CommentWithProfile[] = React.useMemo(() => {
-    const commentMap = new Map<string, CommentWithProfile>();
-    fetchedComments.forEach(comment => {
-      commentMap.set(comment.id, { ...comment, replies: [] });
-    });
-
-    const rootComments: CommentWithProfile[] = [];
-    fetchedComments.forEach(comment => {
-      if (comment.parent_comment_id && commentMap.has(comment.parent_comment_id)) {
-        commentMap.get(comment.parent_comment_id)?.replies?.push(commentMap.get(comment.id)!);
-      } else {
-        rootComments.push(commentMap.get(comment.id)!);
-      }
-    });
-    return rootComments;
-  }, [fetchedComments]);
-
-  // Effect to handle initial video view increment and subscription status
-  useEffect(() => {
-    const handleInitialLoad = async () => {
-      if (!video || isSessionLoading) return;
-
-      // Only increment view count for published videos
-      if (video.status === 'published') {
-        await incrementVideoView(video.id);
-        queryClient.invalidateQueries({ queryKey: ['video', video.id] }); // Invalidate to show updated views
-        queryClient.invalidateQueries({ queryKey: ['creatorVideos', video.user_id] }); // Invalidate creator's dashboard views
-      }
-
-      if (user && video.user_id !== user.id) {
-        const followingStatus = await isFollowing(user.id, video.user_id);
-        setIsFollowingUploader(followingStatus);
-      }
-    };
-
-    handleInitialLoad();
-  }, [video, user, isSessionLoading, queryClient]); // Removed id from dependencies as video object already contains it
-
-  // Update edit form fields when video data changes
-  useEffect(() => {
-    if (video) {
-      setEditTitle(video.title);
-      setEditDescription(video.description || '');
-      setEditTags(video.tags?.join(', ') || '');
+  const fetchVideoDetails = useCallback(async () => {
+    if (!id) {
+      setError('Video ID is missing.');
+      setIsLoading(false);
+      return;
     }
-  }, [video]);
+
+    try {
+      const fetchedVideo = await getVideoById(id);
+      if (fetchedVideo) {
+        // Only allow viewing if published or if the current user is the owner
+        if (fetchedVideo.status === 'draft' && (!user || user.id !== fetchedVideo.user_id)) {
+          setError('This video is a draft and not publicly available.');
+          setVideo(null);
+          setIsLoading(false);
+          return;
+        }
+
+        setVideo(fetchedVideo);
+        
+        // Increment view count only for published videos
+        if (fetchedVideo.status === 'published') {
+          await incrementVideoView(id);
+        }
+
+        const fetchedProfile = await getProfileById(fetchedVideo.user_id);
+        setUploaderProfile(fetchedProfile);
+
+        const fetchedLikes = await getLikesForVideo(id);
+        setLikes(fetchedLikes.length);
+        if (user) {
+          setIsLiked(fetchedLikes.some(like => like.user_id === user.id));
+          // Check subscription status
+          if (fetchedVideo.user_id !== user.id) { // Don't show follow button for own videos
+            const followingStatus = await isFollowing(user.id, fetchedVideo.user_id);
+            setIsFollowingUploader(followingStatus);
+          }
+        }
+
+        const fetchedComments = await getCommentsForVideo(id);
+        // Organize comments into a tree structure for replies
+        const commentMap = new Map<string, CommentWithProfile>();
+        fetchedComments.forEach(comment => {
+          commentMap.set(comment.id, { ...comment, replies: [] });
+        });
+
+        const rootComments: CommentWithProfile[] = [];
+        fetchedComments.forEach(comment => {
+          if (comment.parent_comment_id && commentMap.has(comment.parent_comment_id)) {
+            commentMap.get(comment.parent_comment_id)?.replies?.push(commentMap.get(comment.id)!);
+          } else {
+            rootComments.push(commentMap.get(comment.id)!);
+          }
+        });
+        setComments(rootComments);
+
+        setEditTitle(fetchedVideo.title);
+        setEditDescription(fetchedVideo.description || '');
+        setEditTags(fetchedVideo.tags?.join(', ') || '');
+      } else {
+        setError('Video not found.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch video details.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id, user]);
+
+  useEffect(() => {
+    if (!isSessionLoading) {
+      fetchVideoDetails();
+    }
+  }, [isSessionLoading, fetchVideoDetails]);
 
   const handleLikeToggle = async () => {
     if (!user) {
@@ -125,12 +126,15 @@ const WatchVideo = () => {
     try {
       if (isLiked) {
         await removeLike(user.id, id);
+        setLikes(prev => prev - 1);
+        setIsLiked(false);
         toast.success('Video unliked!');
       } else {
         await addLike(user.id, id);
+        setLikes(prev => prev + 1);
+        setIsLiked(true);
         toast.success('Video liked!');
       }
-      refetchLikes(); // Refetch likes to update UI
     } catch (err: any) {
       toast.error(err.message || 'Failed to update like status.');
       console.error(err);
@@ -149,13 +153,14 @@ const WatchVideo = () => {
     }
 
     try {
-      await addComment(id, user.id, textToPost, parentCommentId);
-      toast.success(parentCommentId ? 'Reply posted!' : 'Comment posted!');
-      setNewCommentText('');
-      setReplyText('');
-      setReplyingToCommentId(null);
-      refetchComments(); // Refetch comments to update the tree structure
-      queryClient.invalidateQueries({ queryKey: ['creatorComments', video?.user_id] }); // Invalidate creator's dashboard comments
+      const addedComment = await addComment(id, user.id, textToPost, parentCommentId);
+      if (addedComment) {
+        toast.success(parentCommentId ? 'Reply posted!' : 'Comment posted!');
+        setNewCommentText('');
+        setReplyText('');
+        setReplyingToCommentId(null);
+        fetchVideoDetails(); // Re-fetch comments to update the tree structure
+      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to post comment.');
       console.error(err);
@@ -170,8 +175,7 @@ const WatchVideo = () => {
     try {
       await deleteComment(commentId);
       toast.success('Comment deleted!');
-      refetchComments(); // Refetch comments to update the tree structure
-      queryClient.invalidateQueries({ queryKey: ['creatorComments', video?.user_id] }); // Invalidate creator's dashboard comments
+      fetchVideoDetails(); // Re-fetch comments to update the tree structure
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete comment.');
       console.error(err);
@@ -188,8 +192,6 @@ const WatchVideo = () => {
     try {
       await deleteVideo(id);
       toast.success('Video deleted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['videos'] }); // Invalidate all videos
-      queryClient.invalidateQueries({ queryKey: ['creatorVideos', user.id] }); // Invalidate creator's videos
       navigate('/'); // Redirect to home page after deletion
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete video.');
@@ -211,14 +213,15 @@ const WatchVideo = () => {
 
     try {
       const updatedTags = editTags ? editTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
-      await updateVideoMetadata(id, {
+      const updatedVideo = await updateVideoMetadata(id, {
         title: editTitle,
         description: editDescription,
         tags: updatedTags,
       });
-      toast.success('Video updated successfully!', { id: loadingToastId });
-      queryClient.invalidateQueries({ queryKey: ['video', id] }); // Invalidate specific video
-      queryClient.invalidateQueries({ queryKey: ['creatorVideos', user.id] }); // Invalidate creator's videos
+      if (updatedVideo) {
+        setVideo(updatedVideo);
+        toast.success('Video updated successfully!', { id: loadingToastId });
+      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to update video.', { id: loadingToastId });
       console.error(err);
@@ -298,15 +301,12 @@ const WatchVideo = () => {
     ))
   );
 
-  const isLoading = isVideoLoading || isProfileLoading || isLikesLoading || isCommentsLoading || isSessionLoading;
-  const hasError = videoError || profileError || likesError || commentsError;
-
   if (isLoading) {
     return <div className="text-center text-muted-foreground">Loading video...</div>;
   }
 
-  if (hasError) {
-    return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">Error: {hasError.message}</div>;
+  if (error) {
+    return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">{error}</div>;
   }
 
   if (!video) {

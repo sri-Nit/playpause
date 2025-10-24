@@ -7,22 +7,19 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, VideoIcon, MessageCircle, BarChart, Trash2, Reply } from 'lucide-react';
 import { toast } from 'sonner';
 import {
+  getCreatorVideos,
+  getVideoAnalytics,
+  getCommentsForCreatorVideos,
   deleteComment,
   addComment,
   Video,
   Comment,
 } from '@/lib/video-store';
-import {
-  useCreatorVideos,
-  useVideoAnalytics,
-  useCommentsForCreatorVideos,
-} from '@/hooks/use-video-data'; // Import new hooks
 import CreatorVideoCard from '@/components/CreatorVideoCard';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User as LucideUser } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 
 interface CommentWithVideoTitle extends Comment {
   videos: { title: string };
@@ -31,48 +28,65 @@ interface CommentWithVideoTitle extends Comment {
 const CreatorDashboard = () => {
   const { user, isLoading: isSessionLoading } = useSession();
   const navigate = useNavigate();
-  const queryClient = useQueryClient(); // Initialize query client
+  const [creatorVideos, setCreatorVideos] = useState<Video[]>([]);
+  const [allComments, setAllComments] = useState<CommentWithVideoTitle[]>([]);
+  const [totalViews, setTotalViews] = useState(0);
+  const [totalLikes, setTotalLikes] = useState(0);
+  const [totalComments, setTotalComments] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('videos');
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
-  // Fetch creator videos using react-query
-  const { data: creatorVideos = [], isLoading: isVideosLoading, error: videosError } = useCreatorVideos(user?.id || '');
+  const fetchCreatorData = useCallback(async () => {
+    if (!user) return;
 
-  // Fetch all comments for creator's videos using react-query
-  const { data: allComments = [], isLoading: isCommentsLoading, error: commentsError } = useCommentsForCreatorVideos(user?.id || '');
+    setIsLoading(true);
+    try {
+      const videos = await getCreatorVideos(user.id);
+      setCreatorVideos(videos);
 
-  // Calculate total views, likes, comments from fetched data
-  const totalViews = creatorVideos.reduce((sum, video) => sum + video.views, 0);
-  const totalLikes = creatorVideos.reduce((sum, video) => {
-    // This is a simplified approach. For accurate total likes, each video's likes need to be fetched.
-    // For now, we'll assume 0 or fetch on demand if needed for overview.
-    // A more robust solution would involve a separate aggregated query or a 'likes_count' column on the video table.
-    return sum; // We'll update this if a better aggregated query is available.
-  }, 0);
-  const totalComments = allComments.length;
+      let viewsCount = 0;
+      let likesCount = 0;
+      let commentsCount = 0;
 
-  // Refetch all creator data when a video is updated or deleted, or a comment is managed
-  const refetchCreatorData = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['creatorVideos', user?.id] });
-    queryClient.invalidateQueries({ queryKey: ['creatorComments', user?.id] });
-    // Invalidate individual video analytics if needed, e.g., for likes count
-    creatorVideos.forEach(video => queryClient.invalidateQueries({ queryKey: ['videoAnalytics', video.id] }));
-  }, [queryClient, user?.id, creatorVideos]);
+      for (const video of videos) {
+        viewsCount += video.views;
+        const analytics = await getVideoAnalytics(video.id);
+        likesCount += analytics.likes;
+        commentsCount += analytics.comments;
+      }
+
+      setTotalViews(viewsCount);
+      setTotalLikes(likesCount);
+      setTotalComments(commentsCount);
+
+      const comments = await getCommentsForCreatorVideos(user.id);
+      setAllComments(comments as CommentWithVideoTitle[]);
+
+    } catch (error: any) {
+      toast.error(`Failed to load dashboard data: ${error.message}`);
+      console.error('Creator dashboard data fetch error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isSessionLoading && !user) {
       navigate('/auth');
       toast.error('You must be logged in to access the Creator Dashboard.');
+    } else if (user) {
+      fetchCreatorData();
     }
-  }, [user, isSessionLoading, navigate]);
+  }, [user, isSessionLoading, navigate, fetchCreatorData]);
 
   const handleVideoUpdated = () => {
-    refetchCreatorData(); // Refresh data after a video is updated
+    fetchCreatorData(); // Refresh data after a video is updated
   };
 
   const handleVideoDeleted = () => {
-    refetchCreatorData(); // Refresh data after a video is deleted
+    fetchCreatorData(); // Refresh data after a video is deleted
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -81,7 +95,7 @@ const CreatorDashboard = () => {
     try {
       await deleteComment(commentId);
       toast.success('Comment deleted!', { id: loadingToastId });
-      refetchCreatorData(); // Refresh comments
+      fetchCreatorData(); // Refresh comments
     } catch (error: any) {
       toast.error(`Failed to delete comment: ${error.message}`, { id: loadingToastId });
       console.error(error);
@@ -106,23 +120,19 @@ const CreatorDashboard = () => {
       toast.success('Reply posted!', { id: loadingToastId });
       setReplyText('');
       setReplyingToCommentId(null);
-      refetchCreatorData(); // Refresh comments
+      fetchCreatorData(); // Refresh comments
     } catch (error: any) {
       toast.error(`Failed to post reply: ${error.message}`, { id: loadingToastId });
       console.error(error);
     }
   };
 
-  if (isSessionLoading || isVideosLoading || isCommentsLoading) {
+  if (isSessionLoading || isLoading) {
     return <div className="text-center text-muted-foreground py-10">Loading creator dashboard...</div>;
   }
 
   if (!user) {
     return null; // Should be redirected by useEffect
-  }
-
-  if (videosError || commentsError) {
-    return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">Error loading dashboard: {videosError?.message || commentsError?.message}</div>;
   }
 
   return (

@@ -1,20 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useSearchVideos } from '@/hooks/use-video-data'; // Import the new hook
+import { searchVideos, Video } from '@/lib/video-store';
 import VideoCard from '@/components/VideoCard';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('query') || '';
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: videos = [], isLoading, error } = useSearchVideos(query); // Use the useSearchVideos hook
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!query) {
+        setVideos([]);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+      try {
+        const fetchedVideos = await searchVideos(query);
+        setVideos(fetchedVideos);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch search results.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSearchResults();
+  }, [query]);
 
   if (isLoading) {
     return <div className="text-center text-muted-foreground">Searching for "{query}"...</div>;
   }
 
   if (error) {
-    return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">Error: {error.message}</div>;
+    return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">{error}</div>;
   }
 
   return (
