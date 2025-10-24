@@ -20,13 +20,13 @@ export const getVideos = async (): Promise<Video[]> => {
 
     if (error) {
       console.error('Error fetching videos:', error);
-      return [];
+      throw new Error(error.message); // Throw error for better reporting
     }
     
     return data as Video[];
   } catch (error) {
     console.error('Unexpected error fetching videos:', error);
-    return [];
+    throw error; // Re-throw unexpected errors
   }
 };
 
@@ -47,13 +47,13 @@ export const addVideoMetadata = async (newVideo: Omit<Video, 'id' | 'created_at'
 
     if (error) {
       console.error('Error adding video metadata:', error);
-      return null;
+      throw new Error(error.message); // Throw error for better reporting
     }
     
     return data as Video;
   } catch (error) {
     console.error('Unexpected error adding video metadata:', error);
-    return null;
+    throw error; // Re-throw unexpected errors
   }
 };
 
@@ -68,12 +68,12 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
 
     if (error) {
       console.error('Error fetching video by ID:', error);
-      return undefined;
+      throw new Error(error.message); // Throw error for better reporting
     }
     
     return data as Video;
   } catch (error) {
     console.error('Unexpected error fetching video by ID:', error);
-    return undefined;
+    throw error; // Re-throw unexpected errors
   }
 };
