@@ -18,6 +18,7 @@ const formSchema = z.object({
   description: z.string().max(500, { message: 'Description must not exceed 500 characters.' }).optional(),
   videoFile: z.any().refine((file) => file?.length > 0, 'Video file is required.'),
   thumbnailFile: z.any().refine((file) => file?.length > 0, 'Thumbnail file is required.'),
+  tags: z.string().optional(), // New field for tags
 });
 
 const UploadVideo = () => {
@@ -30,6 +31,7 @@ const UploadVideo = () => {
     defaultValues: {
       title: '',
       description: '',
+      tags: '', // Default value for tags
     },
   });
 
@@ -91,12 +93,15 @@ const UploadVideo = () => {
       toast.loading('Uploading thumbnail...', { id: loadingToastId });
       const thumbnailUrl = await uploadFile(thumbnailFile, 'thumbnails');
 
+      const videoTags = values.tags ? values.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
+
       toast.loading('Saving video metadata...', { id: loadingToastId });
       const addedVideo = await addVideoMetadata({
         title: values.title,
         description: values.description,
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
+        tags: videoTags, // Pass tags to the metadata function
       }, user.id);
 
       if (addedVideo) {
@@ -146,6 +151,19 @@ const UploadVideo = () => {
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Tell us about your video..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags (comma-separated)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="gaming, tutorial, vlog" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

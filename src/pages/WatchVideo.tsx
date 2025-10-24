@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo } from '@/lib/video-store';
+import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata } from '@/lib/video-store';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Trash2, Edit, User as LucideUser } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check } from 'lucide-react';
 import { useSession } from '@/components/SessionContextProvider';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 interface CommentWithProfile extends Comment {
   profiles: Profile;
@@ -32,6 +33,9 @@ const WatchVideo = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [editTags, setEditTags] = useState('');
+  const [isFollowingUploader, setIsFollowingUploader] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   useEffect(() => {
     const fetchVideoDetails = async () => {
@@ -56,6 +60,11 @@ const WatchVideo = () => {
           setLikes(fetchedLikes.length);
           if (user) {
             setIsLiked(fetchedLikes.some(like => like.user_id === user.id));
+            // Check subscription status
+            if (fetchedVideo.user_id !== user.id) { // Don't show follow button for own videos
+              const followingStatus = await isFollowing(user.id, fetchedVideo.user_id);
+              setIsFollowingUploader(followingStatus);
+            }
           }
 
           const fetchedComments = await getCommentsForVideo(id);
@@ -63,6 +72,7 @@ const WatchVideo = () => {
 
           setEditTitle(fetchedVideo.title);
           setEditDescription(fetchedVideo.description || '');
+          setEditTags(fetchedVideo.tags?.join(', ') || '');
         } else {
           setError('Video not found.');
         }
@@ -174,20 +184,55 @@ const WatchVideo = () => {
     }
     if (!id) return;
 
+    setIsSubscribing(true); // Using this state for general loading during edit
+    const loadingToastId = toast.loading('Updating video details...');
+
     try {
+      const updatedTags = editTags ? editTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
       const updatedVideo = await updateVideoMetadata(id, {
         title: editTitle,
         description: editDescription,
+        tags: updatedTags,
       });
       if (updatedVideo) {
         setVideo(updatedVideo);
-        toast.success('Video updated successfully!');
+        toast.success('Video updated successfully!', { id: loadingToastId });
       }
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update video.');
+      toast.error(err.message || 'Failed to update video.', { id: loadingToastId });
       console.error(err);
     } finally {
       setIsEditDialogOpen(false);
+      setIsSubscribing(false);
+    }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!user || !uploaderProfile) {
+      toast.error('You must be logged in to follow a creator.');
+      return;
+    }
+    if (user.id === uploaderProfile.id) {
+      toast.info("You cannot follow yourself.");
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      if (isFollowingUploader) {
+        await removeSubscription(user.id, uploaderProfile.id);
+        setIsFollowingUploader(false);
+        toast.success(`Unfollowed ${uploaderProfile.first_name || 'creator'}.`);
+      } else {
+        await addSubscription(user.id, uploaderProfile.id);
+        setIsFollowingUploader(true);
+        toast.success(`Now following ${uploaderProfile.first_name || 'creator'}!`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update subscription status.');
+      console.error(err);
+    } finally {
+      setIsSubscribing(false);
     }
   };
 
@@ -232,6 +277,11 @@ const WatchVideo = () => {
             )}
           </div>
         </div>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {video.tags?.map((tag, index) => (
+            <Badge key={index} variant="secondary">{tag}</Badge>
+          ))}
+        </div>
         <p className="text-muted-foreground mb-6">{video.description}</p>
 
         {/* Uploader Info */}
@@ -242,12 +292,21 @@ const WatchVideo = () => {
               <LucideUser className="h-6 w-6 text-muted-foreground" />
             </AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex-1">
             <Link to={`/profile/${uploaderProfile?.id}`} className="font-semibold hover:underline">
               {uploaderProfile?.first_name} {uploaderProfile?.last_name}
             </Link>
             <p className="text-sm text-muted-foreground">Uploader</p>
           </div>
+          {!isOwner && user && uploaderProfile && (
+            <Button 
+              variant={isFollowingUploader ? "secondary" : "default"} 
+              onClick={handleFollowToggle} 
+              disabled={isSubscribing}
+            >
+              {isSubscribing ? '...' : isFollowingUploader ? <><Check className="mr-2 h-4 w-4" /> Following</> : <><Plus className="mr-2 h-4 w-4" /> Follow</>}
+            </Button>
+          )}
         </div>
 
         {/* Comments Section */}
@@ -329,7 +388,7 @@ const WatchVideo = () => {
           <DialogHeader>
             <DialogTitle>Edit Video Details</DialogTitle>
             <DialogDescription>
-              Make changes to your video's title and description here.
+              Make changes to your video's title, description, and tags here.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -355,10 +414,22 @@ const WatchVideo = () => {
                 className="col-span-3"
               />
             </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="editTags" className="text-right">
+                Tags
+              </Label>
+              <Input
+                id="editTags"
+                value={editTags}
+                onChange={(e) => setEditTags(e.target.value)}
+                placeholder="comma, separated, tags"
+                className="col-span-3"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditVideo}>Save changes</Button>
+            <Button onClick={handleEditVideo} disabled={isSubscribing}>Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

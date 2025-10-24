@@ -8,7 +8,8 @@ export interface Video {
   video_url: string;
   thumbnail_url: string;
   created_at: string;
-  views: number; // Added views column
+  views: number;
+  tags: string[] | null; // Added tags column
 }
 
 export interface Profile {
@@ -31,7 +32,14 @@ export interface Comment {
   user_id: string;
   text: string;
   created_at: string;
-  profiles: Profile; // To fetch uploader info for comments
+  profiles: Profile;
+}
+
+export interface Subscription {
+  id: string;
+  follower_id: string;
+  following_id: string;
+  created_at: string;
 }
 
 // Function to get all videos from Supabase
@@ -44,13 +52,13 @@ export const getVideos = async (): Promise<Video[]> => {
 
     if (error) {
       console.error('Error fetching videos:', error);
-      throw new Error(error.message); // Throw error for better reporting
+      throw new Error(error.message);
     }
     
     return data as Video[];
   } catch (error) {
     console.error('Unexpected error fetching videos:', error);
-    throw error; // Re-throw unexpected errors
+    throw error;
   }
 };
 
@@ -65,19 +73,20 @@ export const addVideoMetadata = async (newVideo: Omit<Video, 'id' | 'created_at'
         description: newVideo.description,
         video_url: newVideo.video_url,
         thumbnail_url: newVideo.thumbnail_url,
+        tags: newVideo.tags, // Include tags
       })
       .select()
       .single();
 
     if (error) {
       console.error('Error adding video metadata:', error);
-      throw new Error(error.message); // Throw error for better reporting
+      throw new Error(error.message);
     }
     
     return data as Video;
   } catch (error) {
     console.error('Unexpected error adding video metadata:', error);
-    throw error; // Re-throw unexpected errors
+    throw error;
   }
 };
 
@@ -92,13 +101,13 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
 
     if (error) {
       console.error('Error fetching video by ID:', error);
-      throw new Error(error.message); // Throw error for better reporting
+      throw new Error(error.message);
     }
     
     return data as Video;
   } catch (error) {
     console.error('Unexpected error fetching video by ID:', error);
-    throw error; // Re-throw unexpected errors
+    throw error;
   }
 };
 
@@ -126,7 +135,7 @@ export const getProfileById = async (id: string): Promise<Profile | null> => {
       .eq('id', id)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+    if (error && error.code !== 'PGRST116') {
       console.error('Error fetching profile:', error);
       throw new Error(error.message);
     }
@@ -288,6 +297,106 @@ export const deleteVideo = async (videoId: string): Promise<void> => {
     }
   } catch (error) {
     console.error('Unexpected error deleting video:', error);
+    throw error;
+  }
+};
+
+// --- Subscription Functions ---
+
+// Function to check if a user is following another user
+export const isFollowing = async (followerId: string, followingId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('follower_id', followerId)
+      .eq('following_id', followingId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+      console.error('Error checking subscription status:', error);
+      throw new Error(error.message);
+    }
+    return !!data;
+  } catch (error) {
+    console.error('Unexpected error checking subscription status:', error);
+    throw error;
+  }
+};
+
+// Function to add a subscription
+export const addSubscription = async (followerId: string, followingId: string): Promise<Subscription | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .insert({ follower_id: followerId, following_id: followingId })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding subscription:', error);
+      throw new Error(error.message);
+    }
+    return data as Subscription;
+  } catch (error) {
+    console.error('Unexpected error adding subscription:', error);
+    throw error;
+  }
+};
+
+// Function to remove a subscription
+export const removeSubscription = async (followerId: string, followingId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('subscriptions')
+      .delete()
+      .eq('follower_id', followerId)
+      .eq('following_id', followingId);
+
+    if (error) {
+      console.error('Error removing subscription:', error);
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    console.error('Unexpected error removing subscription:', error);
+    throw error;
+  }
+};
+
+// Function to get users a specific user is following
+export const getFollowing = async (followerId: string): Promise<Subscription[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('follower_id', followerId);
+
+    if (error) {
+      console.error('Error fetching following list:', error);
+      throw new Error(error.message);
+    }
+    return data as Subscription[];
+  } catch (error) {
+    console.error('Unexpected error fetching following list:', error);
+    throw error;
+  }
+};
+
+// Function to get users who are following a specific user
+export const getFollowers = async (followingId: string): Promise<Subscription[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('following_id', followingId);
+
+    if (error) {
+      console.error('Error fetching followers list:', error);
+      throw new Error(error.message);
+    }
+    return data as Subscription[];
+  } catch (error) {
+    console.error('Unexpected error fetching followers list:', error);
     throw error;
   }
 };
