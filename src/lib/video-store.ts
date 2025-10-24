@@ -400,3 +400,23 @@ export const getFollowers = async (followingId: string): Promise<Subscription[]>
     throw error;
   }
 };
+
+// Function to search videos by title, description, or tags
+export const searchVideos = async (query: string): Promise<Video[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('videos')
+      .select('*')
+      .or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error searching videos:', error);
+      throw new Error(error.message);
+    }
+    return data as Video[];
+  } catch (error) {
+    console.error('Unexpected error searching videos:', error);
+    throw error;
+  }
+};
