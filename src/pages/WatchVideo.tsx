@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata } from '@/lib/video-store';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2 } from 'lucide-react'; // Added Share2 icon
 import { useSession } from '@/components/SessionContextProvider';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -260,6 +260,21 @@ const WatchVideo = () => {
     }
   };
 
+  const handleShareVideo = async () => {
+    if (!video) {
+      toast.error('No video to share.');
+      return;
+    }
+    const videoUrl = window.location.href; // Get the current URL of the video page
+    try {
+      await navigator.clipboard.writeText(videoUrl);
+      toast.success('Video link copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy video link:', err);
+      toast.error('Failed to copy link. Please try again.');
+    }
+  };
+
   const renderComments = (commentList: CommentWithProfile[]) => (
     commentList.map((comment) => (
       <div key={comment.id} className="flex items-start space-x-3">
@@ -331,6 +346,9 @@ const WatchVideo = () => {
               <Heart className="h-5 w-5" fill={isLiked ? 'currentColor' : 'none'} />
             </Button>
             <span>{likes}</span>
+            <Button variant="ghost" size="icon" onClick={handleShareVideo}> {/* Share button */}
+              <Share2 className="h-5 w-5" />
+            </Button>
             {isOwner && (
               <>
                 <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)}>
@@ -436,7 +454,7 @@ const WatchVideo = () => {
             <DialogDescription>
               Make changes to your video's title, description, and tags here.
             </DialogDescription>
-          </DialogHeader>
+          </DialogDescription>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="editTitle" className="text-right">
