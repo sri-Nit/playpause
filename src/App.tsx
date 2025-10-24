@@ -9,7 +9,8 @@ import UploadVideo from "./pages/UploadVideo";
 import Layout from "./components/Layout";
 import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/Profile";
-import SignUp from "./pages/SignUp"; // Import the new SignUp page
+import SignUp from "./pages/SignUp";
+import WatchVideo from "./pages/WatchVideo"; // Import the new WatchVideo page
 import { SessionContextProvider } from "./components/SessionContextProvider";
 
 const queryClient = new QueryClient();
@@ -26,8 +27,9 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/upload" element={<UploadVideo />} />
               <Route path="/auth" element={<AuthPage />} />
-              <Route path="/signup" element={<SignUp />} /> {/* Add the new signup route */}
+              <Route path="/signup" element={<SignUp />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/watch/:id" element={<WatchVideo />} /> {/* Add the new watch video route */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -2,34 +2,37 @@ import React from 'react';
 import { Video } from '@/lib/video-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Link } from 'react-router-dom';
 
 interface VideoCardProps {
   video: Video;
-  onClick: (video: Video) => void;
+  onClick?: (video: Video) => void; // Made optional as direct navigation will be used
 }
 
 const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
   return (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow duration-200" onClick={() => onClick(video)}>
-      <CardContent className="p-0">
-        <AspectRatio ratio={16 / 9}>
-          <img
-            src={video.thumbnail_url}
-            alt={video.title}
-            className="rounded-t-lg object-cover w-full h-full"
-            onError={(e) => {
-              e.currentTarget.src = '/placeholder.svg';
-            }}
-          />
-        </AspectRatio>
-      </CardContent>
-      <CardHeader className="p-4">
-        <CardTitle className="text-lg font-semibold line-clamp-2">{video.title}</CardTitle>
-        <CardDescription className="text-sm text-muted-foreground">
-          {new Date(video.created_at).toLocaleDateString()}
-        </CardDescription>
-      </CardHeader>
-    </Card>
+    <Link to={`/watch/${video.id}`} className="block">
+      <Card className="cursor-pointer hover:shadow-lg transition-shadow duration-200">
+        <CardContent className="p-0">
+          <AspectRatio ratio={16 / 9}>
+            <img
+              src={video.thumbnail_url}
+              alt={video.title}
+              className="rounded-t-lg object-cover w-full h-full"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder.svg';
+              }}
+            />
+          </AspectRatio>
+        </CardContent>
+        <CardHeader className="p-4">
+          <CardTitle className="text-lg font-semibold line-clamp-2">{video.title}</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">
+            {video.views} views • {new Date(video.created_at).toLocaleDateString()}
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    </Link>
   );
 };
 
