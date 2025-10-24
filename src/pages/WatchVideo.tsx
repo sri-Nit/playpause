@@ -454,7 +454,7 @@ const WatchVideo = () => {
             <DialogDescription>
               Make changes to your video's title, description, and tags here.
             </DialogDescription>
-          </DialogDescription>
+          </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="editTitle" className="text-right">
