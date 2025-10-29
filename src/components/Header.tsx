@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Search, Bell, User, LogOut, Settings, LayoutDashboard, Users, BarChart } from 'lucide-react';
+import { Upload, Search, Bell, User, LogOut, Settings, LayoutDashboard, Users, History } from 'lucide-react'; // Added History icon
 import { useSession } from './SessionContextProvider';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -106,6 +106,10 @@ const Header = () => {
                 <DropdownMenuItem onClick={() => navigate('/dashboard')}>
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   <span>Creator Dashboard</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/history')}> {/* Added Watch History link */}
+                  <History className="mr-2 h-4 w-4" />
+                  <span>Watch History</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => console.log('Switch Account clicked')}>
                   <Users className="mr-2 h-4 w-4" />

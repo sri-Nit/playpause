@@ -12,7 +12,8 @@ import ProfilePage from "./pages/Profile";
 import SignUp from "./pages/SignUp";
 import WatchVideo from "./pages/WatchVideo";
 import SearchResults from "./pages/SearchResults";
-import CreatorDashboard from "./pages/CreatorDashboard"; // Import the new CreatorDashboard page
+import CreatorDashboard from "./pages/CreatorDashboard";
+import WatchHistory from "./pages/WatchHistory"; // Import the new WatchHistory page
 import { SessionContextProvider } from "./components/SessionContextProvider";
 
 const queryClient = new QueryClient();
@@ -33,7 +34,8 @@ const App = () => (
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/watch/:id" element={<WatchVideo />} />
               <Route path="/search" element={<SearchResults />} />
-              <Route path="/dashboard" element={<CreatorDashboard />} /> {/* Add the new creator dashboard route */}
+              <Route path="/dashboard" element={<CreatorDashboard />} />
+              <Route path="/history" element={<WatchHistory />} /> {/* Add the new watch history route */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

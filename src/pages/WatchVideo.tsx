@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata } from '@/lib/video-store';
+import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory } from '@/lib/video-store';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2 } from 'lucide-react'; // Added Share2 icon
+import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2, History } from 'lucide-react';
 import { useSession } from '@/components/SessionContextProvider';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -60,9 +60,16 @@ const WatchVideo = () => {
 
         setVideo(fetchedVideo);
         
-        // Increment view count only for published videos
-        if (fetchedVideo.status === 'published') {
-          await incrementVideoView(id);
+        // Increment view count and add to history only once per session
+        const viewKey = `video_viewed_${id}`;
+        if (!sessionStorage.getItem(viewKey)) {
+          if (fetchedVideo.status === 'published') {
+            await incrementVideoView(id);
+          }
+          if (user) {
+            await addVideoToHistory(user.id, id);
+          }
+          sessionStorage.setItem(viewKey, 'true');
         }
 
         const fetchedProfile = await getProfileById(fetchedVideo.user_id);
