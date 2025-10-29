@@ -40,6 +40,22 @@ const WatchVideo = () => {
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
+  const handleVideoProgressThresholdMet = useCallback(async (videoId: string) => {
+    const viewKey = `video_viewed_50_${videoId}`;
+    if (!sessionStorage.getItem(viewKey)) {
+      if (video?.status === 'published') {
+        await incrementVideoView(videoId);
+      }
+      if (user) {
+        await addVideoToHistory(user.id, videoId);
+      }
+      sessionStorage.setItem(viewKey, 'true');
+      // Optionally, re-fetch video details to update the view count displayed on the page
+      // setVideo(prev => prev ? { ...prev, views: prev.views + 1 } : null);
+    }
+  }, [user, video?.status]);
+
+
   const fetchVideoDetails = useCallback(async () => {
     if (!id) {
       setError('Video ID is missing.');
@@ -60,18 +76,6 @@ const WatchVideo = () => {
 
         setVideo(fetchedVideo);
         
-        // Increment view count and add to history only once per session
-        const viewKey = `video_viewed_${id}`;
-        if (!sessionStorage.getItem(viewKey)) {
-          if (fetchedVideo.status === 'published') {
-            await incrementVideoView(id);
-          }
-          if (user) {
-            await addVideoToHistory(user.id, id);
-          }
-          sessionStorage.setItem(viewKey, 'true');
-        }
-
         const fetchedProfile = await getProfileById(fetchedVideo.user_id);
         setUploaderProfile(fetchedProfile);
 
@@ -340,7 +344,7 @@ const WatchVideo = () => {
   return (
     <div className="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2">
-        <VideoPlayer videoUrl={video.video_url} title={video.title} />
+        <VideoPlayer videoUrl={video.video_url} title={video.title} onProgressThresholdMet={handleVideoProgressThresholdMet} videoId={video.id} />
         <h1 className="text-3xl font-bold mt-4 mb-2">{video.title}</h1>
         <div className="flex items-center justify-between text-muted-foreground text-sm mb-4">
           <div className="flex items-center space-x-4">
