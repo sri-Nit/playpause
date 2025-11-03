@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { User as LucideUser } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Profile {
   id: string;
@@ -23,6 +24,7 @@ const ProfilePage = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null); // New state for avatar file
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
@@ -51,6 +53,40 @@ const ProfilePage = () => {
     }
   }, [user, isLoading]);
 
+  const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      setAvatarFile(event.target.files[0]);
+    } else {
+      setAvatarFile(null);
+    }
+  };
+
+  const uploadAvatar = async (file: File) => {
+    if (!user) throw new Error('User not authenticated.');
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `${user.id}/${fileName}`; // Store avatars in a user-specific folder
+
+    const { data, error } = await supabase.storage
+      .from('avatars') // Use 'avatars' bucket
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true, // Allow overwriting existing avatar for the user
+        contentType: file.type,
+      });
+
+    if (error) {
+      throw new Error(`Failed to upload avatar: ${error.message}`);
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
   const handleUpdateProfile = async () => {
     if (!user) return;
 
@@ -58,12 +94,19 @@ const ProfilePage = () => {
     const loadingToastId = toast.loading('Updating profile...');
 
     try {
+      let newAvatarUrl = avatarUrl;
+
+      if (avatarFile) {
+        toast.loading('Uploading new avatar...', { id: loadingToastId });
+        newAvatarUrl = await uploadAvatar(avatarFile);
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
           first_name: firstName,
           last_name: lastName,
-          avatar_url: avatarUrl,
+          avatar_url: newAvatarUrl,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -72,6 +115,8 @@ const ProfilePage = () => {
         throw new Error(error.message);
       }
 
+      setAvatarUrl(newAvatarUrl); // Update local state with new URL
+      setAvatarFile(null); // Clear file input after successful upload
       toast.success('Profile updated successfully!', { id: loadingToastId });
     } catch (error: any) {
       toast.error(`Failed to update profile: ${error.message}`, { id: loadingToastId });
@@ -130,12 +175,23 @@ const ProfilePage = () => {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="avatarUrl">Avatar URL</Label>
+              <Label htmlFor="avatarFile">Upload Avatar</Label>
+              <Input
+                id="avatarFile"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarFileChange}
+              />
+              {avatarFile && <p className="text-sm text-muted-foreground">Selected: {avatarFile.name}</p>}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="avatarUrl">Avatar URL (or upload above)</Label>
               <Input
                 id="avatarUrl"
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
                 placeholder="https://example.com/avatar.jpg"
+                disabled={!!avatarFile} // Disable if a file is selected for upload
               />
             </div>
             <Button onClick={handleUpdateProfile} disabled={isUpdating}>
