@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getVideoById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory, getOrCreateConversation } from '@/lib/video-store';
-import CustomVideoPlayer from '@/components/CustomVideoPlayer'; // Import the new custom player component
+import CustomVideoPlayer from '@/components/CustomVideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2, History, MessageSquare } from 'lucide-react';
@@ -371,7 +371,7 @@ const WatchVideo = () => {
   return (
     <div className="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2">
-        <CustomVideoPlayer // Use the new custom player component here
+        <CustomVideoPlayer
           videoUrl={video.video_url}
           title={video.title}
           thumbnailUrl={video.thumbnail_url}
@@ -568,7 +568,7 @@ const WatchVideo = () => {
             <DialogDescription>
               Replying to a comment.
             </DialogDescription>
-          </DialogDescription>
+          </DialogHeader>
           <div className="grid gap-4 py-4">
             <Textarea
               placeholder="Write your reply..."
