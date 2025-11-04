@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Settings, Play, Pause, Volume2, VolumeX, Maximize, Minimize, ChevronLeft, RotateCcw, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Settings, Play, Pause, Volume2, VolumeX, Maximize, Minimize, ChevronLeft, RotateCcw, ChevronsLeft, ChevronsRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -47,6 +47,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   const [currentQuality, setCurrentQuality] = useState('Auto'); // State for quality
   const [settingsView, setSettingsView] = useState<'main' | 'speed' | 'quality'>('main'); // New state for nested settings
   const [videoEnded, setVideoEnded] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(true); // New state for loading spinner
+  const [showMutedIndicator, setShowMutedIndicator] = useState(false); // New state for muted indicator
 
   const formatTime = (timeInSeconds: number) => {
     const minutes = Math.floor(timeInSeconds / 60);
@@ -71,6 +73,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       setDuration(videoRef.current.duration);
       videoRef.current.volume = volume; // Set initial volume
       videoRef.current.muted = isMuted; // Apply initial mute state
+      setIsBuffering(false); // Video metadata loaded, not buffering
     }
   };
 
@@ -102,9 +105,11 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       if (newVolume > 0 && isMuted) {
         setIsMuted(false);
         videoRef.current.muted = false;
+        setShowMutedIndicator(false);
       } else if (newVolume === 0 && !isMuted) {
         setIsMuted(true);
         videoRef.current.muted = true;
+        setShowMutedIndicator(true);
       }
     }
   };
@@ -113,6 +118,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
+      setShowMutedIndicator(!isMuted); // Show indicator if becoming muted
       if (!isMuted && volume === 0) { // If unmuting from 0 volume, set to a default
         setVolume(0.5);
         videoRef.current.volume = 0.5;
@@ -183,16 +189,16 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     }
   };
 
-  const handleRewind = () => {
+  const handleRewind = (seconds: number = 5) => {
     if (videoRef.current) {
-      videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 5);
+      videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - seconds);
       showControlsTemporarily(); // Keep controls visible after seeking
     }
   };
 
-  const handleFastForward = () => {
+  const handleFastForward = (seconds: number = 5) => {
     if (videoRef.current) {
-      videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + 5);
+      videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + seconds);
       showControlsTemporarily(); // Keep controls visible after seeking
     }
   };
@@ -202,6 +208,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 
     switch (event.key) {
       case ' ': // Spacebar
+      case 'k': // K key
         event.preventDefault(); // Prevent scrolling
         handlePlayPause();
         break;
@@ -214,10 +221,16 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         handleFullScreenToggle();
         break;
       case 'ArrowLeft': // Left arrow key
-        handleRewind();
+        handleRewind(5);
+        break;
+      case 'j': // J key
+        handleRewind(10);
         break;
       case 'ArrowRight': // Right arrow key
-        handleFastForward();
+        handleFastForward(5);
+        break;
+      case 'l': // L key
+        handleFastForward(10);
         break;
     }
   }, [handlePlayPause, handleMuteToggle, handleFullScreenToggle, handleRewind, handleFastForward]);
@@ -228,6 +241,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 
   useEffect(() => {
     setHasMetThreshold(false);
+    setIsBuffering(true); // Set buffering true on video load
     if (videoRef.current) {
       videoRef.current.load();
       videoRef.current.playbackRate = playbackSpeed;
@@ -238,6 +252,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       });
       setIsPlaying(true); // Assume playing if autoplay is attempted
       setVideoEnded(false); // Reset video ended state on new video load
+      setShowMutedIndicator(isMuted); // Show muted indicator if initially muted
     }
   }, [videoId, videoUrl]);
 
@@ -298,10 +313,12 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
           poster={thumbnailUrl}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
-          onPlay={() => setIsPlaying(true)}
+          onPlay={() => { setIsPlaying(true); setIsBuffering(false); setShowMutedIndicator(videoRef.current?.muted || false); }}
           onPause={() => setShowControls(true)} // Show controls when paused
           onEnded={handleVideoEnded}
           onDoubleClick={handleDoubleClick}
+          onWaiting={() => setIsBuffering(true)} // Set buffering true when video is waiting
+          onPlaying={() => setIsBuffering(false)} // Set buffering false when video is playing
           autoPlay
           muted // Start muted to increase autoplay success rate
           playsInline
@@ -310,9 +327,17 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         </video>
       </AspectRatio>
 
+      {/* Loading Spinner Overlay */}
+      {isBuffering && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 transition-opacity duration-300 z-40">
+          <Loader2 className="h-12 w-12 animate-spin text-white" />
+          <span className="sr-only">Loading video...</span>
+        </div>
+      )}
+
       {/* Play/Pause Overlay (only visible when paused, not ended, and controls are shown) */}
-      {(!isPlaying && showControls && !videoEnded) && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity duration-300">
+      {(!isPlaying && showControls && !videoEnded && !isBuffering) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity duration-300 z-30">
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 w-20 h-20" onClick={handlePlayPause}>
             <Play className="h-12 w-12" />
             <span className="sr-only">Play</span>
@@ -322,7 +347,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 
       {/* Replay Overlay (only visible when video has ended) */}
       {videoEnded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 transition-opacity duration-300">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 transition-opacity duration-300 z-30">
           <Button variant="ghost" className="text-white hover:bg-white/20 w-32 h-32 rounded-full flex flex-col items-center justify-center" onClick={handleReplay}>
             <RotateCcw className="h-20 w-20 mb-2" />
             <span className="text-lg font-semibold">Replay</span>
@@ -335,7 +360,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       <div
         className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 transition-opacity duration-300 ${
           showControls || !isPlaying || videoEnded ? 'opacity-100' : 'opacity-0'
-        }`}
+        } z-50`}
       >
         {/* Progress Bar */}
         <Slider
@@ -352,7 +377,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="icon" onClick={handleRewind} className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" onClick={() => handleRewind(5)} className="text-white hover:bg-white/20">
               <ChevronsLeft className="h-5 w-5" />
               <span className="sr-only">Rewind 5 seconds</span>
             </Button>
@@ -360,7 +385,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
               {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleFastForward} className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" onClick={() => handleFastForward(5)} className="text-white hover:bg-white/20">
               <ChevronsRight className="h-5 w-5" />
               <span className="sr-only">Fast forward 5 seconds</span>
             </Button>
@@ -392,6 +417,11 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
           </div>
 
           <div className="flex items-center space-x-2">
+            {showMutedIndicator && isPlaying && !videoEnded && (
+              <div className="flex items-center text-xs text-white bg-gray-700 px-2 py-1 rounded-md">
+                <VolumeX className="h-3 w-3 mr-1" /> Muted
+              </div>
+            )}
             <DropdownMenu onOpenChange={(open) => {
               if (!open) {
                 setSettingsView('main'); // Reset to main view when dropdown closes
