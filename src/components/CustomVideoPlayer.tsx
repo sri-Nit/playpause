@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuItem,
+  DropdownMenuPortal, // Import DropdownMenuPortal
 } from '@/components/ui/dropdown-menu';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { CustomSlider } from '@/components/CustomSlider'; // Import CustomSlider
@@ -425,68 +426,70 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
                   <span className="sr-only">Video Settings</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                className="w-48 bg-black/70 text-white border-none z-50" 
-                side="top" 
-                sideOffset={10} 
-                align="end" // Align to the end (right)
-              >
-                {settingsView === 'main' && (
-                  <>
-                    <DropdownMenuLabel>Video Settings</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setSettingsView('speed'); }} className="flex justify-between items-center">
-                      <span>Playback Speed</span>
-                      <span className="text-muted-foreground">{playbackSpeed === 1.0 ? 'Normal' : `${playbackSpeed}x`}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setSettingsView('quality'); }} className="flex justify-between items-center">
-                      <span>Quality</span>
-                      <span className="text-muted-foreground">{currentQuality}</span>
-                    </DropdownMenuItem>
-                  </>
-                )}
+              <DropdownMenuPortal> {/* Wrap content with portal */}
+                <DropdownMenuContent 
+                  className="w-48 bg-black/70 text-white border-none z-50" 
+                  side="top" 
+                  sideOffset={10} 
+                  align="end" // Align to the end (right)
+                >
+                  {settingsView === 'main' && (
+                    <>
+                      <DropdownMenuLabel>Video Settings</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setSettingsView('speed'); }} className="flex justify-between items-center">
+                        <span>Playback Speed</span>
+                        <span className="text-muted-foreground">{playbackSpeed === 1.0 ? 'Normal' : `${playbackSpeed}x`}</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setSettingsView('quality'); }} className="flex justify-between items-center">
+                        <span>Quality</span>
+                        <span className="text-muted-foreground">{currentQuality}</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
 
-                {settingsView === 'speed' && (
-                  <>
-                    <DropdownMenuLabel className="flex items-center">
-                      <Button variant="ghost" size="icon" className="h-6 w-6 mr-2" onClick={() => setSettingsView('main')}>
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      Playback Speed
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={playbackSpeed.toString()} onValueChange={handleSpeedChange}>
-                      {playbackSpeeds.map((speed) => (
-                        <DropdownMenuRadioItem key={speed} value={speed.toString()}>
-                          {speed === 1.0 ? 'Normal' : `${speed}x`}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </>
-                )}
+                  {settingsView === 'speed' && (
+                    <>
+                      <DropdownMenuLabel className="flex items-center">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 mr-2" onClick={() => setSettingsView('main')}>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        Playback Speed
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={playbackSpeed.toString()} onValueChange={handleSpeedChange}>
+                        {playbackSpeeds.map((speed) => (
+                          <DropdownMenuRadioItem key={speed} value={speed.toString()}>
+                            {speed === 1.0 ? 'Normal' : `${speed}x`}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </>
+                  )}
 
-                {settingsView === 'quality' && (
-                  <>
-                    <DropdownMenuLabel className="flex items-center">
-                      <Button variant="ghost" size="icon" className="h-6 w-6 mr-2" onClick={() => setSettingsView('main')}>
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      Quality
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={currentQuality} onValueChange={handleQualityChange}>
-                      {qualityOptions.map((quality) => (
-                        <DropdownMenuRadioItem key={quality} value={quality}>
-                          {quality}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                    <p className="text-xs text-muted-foreground p-2">
-                      Note: Actual quality switching requires multiple video sources.
-                    </p>
-                  </>
-                )}
-              </DropdownMenuContent>
+                  {settingsView === 'quality' && (
+                    <>
+                      <DropdownMenuLabel className="flex items-center">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 mr-2" onClick={() => setSettingsView('main')}>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        Quality
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={currentQuality} onValueChange={handleQualityChange}>
+                        {qualityOptions.map((quality) => (
+                          <DropdownMenuRadioItem key={quality} value={quality}>
+                            {quality}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                      <p className="text-xs text-muted-foreground p-2">
+                        Note: Actual quality switching requires multiple video sources.
+                      </p>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenuPortal>
             </DropdownMenu>
             <Button variant="ghost" size="icon" onClick={handleFullScreenToggle} className="text-white hover:bg-white/20">
               {isFullScreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
