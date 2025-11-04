@@ -425,7 +425,12 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
                   <span className="sr-only">Video Settings</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48 bg-black/70 text-white border-none z-50" side="top">
+              <DropdownMenuContent 
+                className="w-48 bg-black/70 text-white border-none z-50" 
+                side="top" 
+                sideOffset={10} 
+                align="end" // Align to the end (right)
+              >
                 {settingsView === 'main' && (
                   <>
                     <DropdownMenuLabel>Video Settings</DropdownMenuLabel>
