@@ -105,6 +105,7 @@ const YouPage = () => {
     if (user) {
       setIsContentLoading(true);
       fetchProfile();
+      // Only fetch data for the active tab to avoid unnecessary calls
       if (activeTab === 'liked') {
         fetchLikedVideos();
       } else if (activeTab === 'history') {
@@ -203,7 +204,7 @@ const YouPage = () => {
           <TabsTrigger value="profile">Profile Details</TabsTrigger>
           <TabsTrigger value="liked">Liked Videos</TabsTrigger>
           <TabsTrigger value="history">Watch History</TabsTrigger>
-          <TabsTrigger value="subscribed">Joined Crews</TabsTrigger> {/* Changed text */}
+          <TabsTrigger value="subscribed">Joined Crews</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
@@ -304,11 +305,11 @@ const YouPage = () => {
         </TabsContent>
 
         <TabsContent value="subscribed" className="mt-6">
-          <h2 className="text-2xl font-bold mb-4">Videos from Joined Crews</h2> {/* Changed text */}
+          <h2 className="text-2xl font-bold mb-4">Videos from Joined Crews</h2>
           {isContentLoading ? (
-            <div className="text-center text-muted-foreground py-10">Loading videos from joined crews...</div> {/* Changed text */}
+            <div className="text-center text-muted-foreground py-10">Loading videos from joined crews...</div>
           ) : subscribedVideos.length === 0 ? (
-            <div className="text-center text-muted-foreground">You haven't joined any crews yet, or they haven't uploaded videos.</div> {/* Changed text */}
+            <div className="text-center text-muted-foreground">You haven't joined any crews yet, or they haven't uploaded videos.</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {subscribedVideos.map((video) => (
