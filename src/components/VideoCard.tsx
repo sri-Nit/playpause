@@ -3,6 +3,8 @@ import { Video, getProfileById, Profile } from '@/lib/video-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Link } from 'react-router-dom';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import { User as LucideUser } from 'lucide-react'; // Import User icon
 
 interface VideoCardProps {
   video: Video;
@@ -42,10 +44,18 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
         </CardContent>
         <CardHeader className="p-4">
           <CardTitle className="text-lg font-semibold line-clamp-2 mb-1">{video.title}</CardTitle>
-          <div className="flex justify-between items-center text-sm text-muted-foreground">
-            <CardDescription className="text-sm text-muted-foreground">
-              {creatorProfile ? `${creatorProfile.first_name || ''} ${creatorProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
-            </CardDescription>
+          <div className="flex items-center justify-between text-sm text-muted-foreground mt-1"> {/* Added mt-1 for spacing */}
+            <div className="flex items-center space-x-2"> {/* Container for avatar and creator name */}
+              <Avatar className="h-6 w-6"> {/* Smaller avatar for card */}
+                <AvatarImage src={creatorProfile?.avatar_url || undefined} alt={creatorProfile?.first_name || 'Creator'} />
+                <AvatarFallback>
+                  <LucideUser className="h-3 w-3 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <CardDescription className="text-sm text-muted-foreground">
+                {creatorProfile ? `${creatorProfile.first_name || ''} ${creatorProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+              </CardDescription>
+            </div>
             <CardDescription className="text-sm text-muted-foreground">
               {video.views} views • {new Date(video.created_at).toLocaleDateString()}
             </CardDescription>

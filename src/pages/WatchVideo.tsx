@@ -349,9 +349,17 @@ const WatchVideo = () => {
         <div className="mt-4 mb-4">
           <h1 className="text-3xl font-bold mb-1">{video.title}</h1>
           <div className="flex justify-between items-center text-muted-foreground text-sm">
-            <p className="text-base">
-              {uploaderProfile ? `${uploaderProfile.first_name || ''} ${uploaderProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
-            </p>
+            <div className="flex items-center space-x-2"> {/* Container for avatar and creator name */}
+              <Avatar className="h-8 w-8"> {/* Larger avatar for watch page */}
+                <AvatarImage src={uploaderProfile?.avatar_url || undefined} alt={uploaderProfile?.first_name || 'Creator'} />
+                <AvatarFallback>
+                  <LucideUser className="h-4 w-4 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <p className="text-base">
+                {uploaderProfile ? `${uploaderProfile.first_name || ''} ${uploaderProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+              </p>
+            </div>
             <div className="flex items-center space-x-2">
               <p>{video.views} views</p>
               <p>•</p>
@@ -475,6 +483,7 @@ const WatchVideo = () => {
             <DialogDescription>
               Make changes to your video's title, description, and tags here.
             </DialogDescription>
+          </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
