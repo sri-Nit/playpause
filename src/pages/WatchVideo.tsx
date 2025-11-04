@@ -377,7 +377,7 @@ const WatchVideo = () => {
   return (
     <div className="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2">
-        <VideoPlayer videoUrl={video.video_url} title={video.title} onProgressThresholdMet={handleVideoProgressThresholdMet} videoId={video.id} />
+        <VideoPlayer videoUrl={video.video_url} title={video.title} thumbnailUrl={video.thumbnail_url} onProgressThresholdMet={handleVideoProgressThresholdMet} videoId={video.id} />
         
         <div className="mt-4 mb-4">
           <h1 className="text-3xl font-bold mb-1">{video.title}</h1>

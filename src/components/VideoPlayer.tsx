@@ -4,18 +4,27 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 interface VideoPlayerProps {
   videoUrl: string;
   title: string;
-  onProgressThresholdMet: (videoId: string) => void; // New callback prop
-  videoId: string; // New prop to pass video ID
+  thumbnailUrl: string; // New prop for thumbnail
+  onProgressThresholdMet: (videoId: string) => void;
+  videoId: string;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, title, onProgressThresholdMet, videoId }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, title, thumbnailUrl, onProgressThresholdMet, videoId }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasMetThreshold, setHasMetThreshold] = useState(false);
 
   useEffect(() => {
-    // Reset hasMetThreshold when videoId changes
     setHasMetThreshold(false);
-  }, [videoId]);
+    // Attempt to play the video when component mounts or videoId/videoUrl changes
+    if (videoRef.current) {
+      videoRef.current.load(); // Ensure video element is ready to load new source
+      videoRef.current.play().catch(error => {
+        // Autoplay might be blocked by browser policies (e.g., no user interaction, not muted)
+        console.warn("Autoplay prevented:", error);
+        // Optionally, you could show a play button here if autoplay fails
+      });
+    }
+  }, [videoId, videoUrl]); // Re-run effect if videoId or videoUrl changes
 
   const handleTimeUpdate = () => {
     const video = videoRef.current;
@@ -37,8 +46,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, title, onProgressTh
           src={videoUrl}
           title={title}
           className="w-full h-full rounded-md object-cover"
-          poster="/placeholder.svg" // Optional: A poster image for the video
+          poster={thumbnailUrl} // Use the actual thumbnail URL
           onTimeUpdate={handleTimeUpdate}
+          autoPlay // Play automatically
+          muted // Start muted to increase autoplay success rate
+          playsInline // Important for iOS devices
         >
           Your browser does not support the video tag.
         </video>
