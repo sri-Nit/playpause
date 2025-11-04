@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Slider } from '@/components/ui/slider';
+import { CustomSlider } from '@/components/CustomSlider'; // Import CustomSlider
 
 interface CustomVideoPlayerProps {
   videoUrl: string;
@@ -363,15 +363,12 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         } z-50`}
       >
         {/* Progress Bar */}
-        <Slider
+        <CustomSlider
           value={[currentTime]}
           max={duration}
           step={0.1}
           onValueChange={handleProgressChange}
           className="w-full mb-2 cursor-pointer"
-          thumbClassName="w-4 h-4 bg-red-500 rounded-full border-2 border-white"
-          trackClassName="bg-gray-700 h-1 rounded-full"
-          rangeClassName="bg-red-500 h-1 rounded-full"
           aria-label="Video progress"
         />
 
@@ -396,15 +393,12 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
                 {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
               </Button>
-              <Slider
+              <CustomSlider
                 value={[isMuted ? 0 : volume * 100]}
                 max={100}
                 step={1}
                 onValueChange={handleVolumeChange}
                 className="w-24 cursor-pointer"
-                thumbClassName="w-3 h-3 bg-blue-500 rounded-full border-2 border-white"
-                trackClassName="bg-gray-700 h-1 rounded-full"
-                rangeClassName="bg-blue-500 h-1 rounded-full"
                 aria-label="Volume control"
               />
             </div>
