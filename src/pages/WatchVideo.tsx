@@ -379,21 +379,21 @@ const WatchVideo = () => {
           videoId={video.id}
         />
         
-        <div className="mt-6 border-b pb-4"> {/* Added border-b and pb-4 for separation */}
-          <h1 className="text-4xl font-extrabold mb-2 leading-tight">{video.title}</h1> {/* Larger, bolder title */}
+        <div className="mt-6 border-b pb-4">
+          <h1 className="text-4xl font-extrabold mb-2 leading-tight">{video.title}</h1>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-muted-foreground text-sm mb-4">
             <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline mb-2 sm:mb-0">
-              <Avatar className="h-9 w-9"> {/* Slightly larger avatar */}
+              <Avatar className="h-9 w-9">
                 <AvatarImage src={video.profiles?.avatar_url || undefined} alt={video.profiles?.first_name || 'Creator'} />
                 <AvatarFallback>
                   <LucideUser className="h-5 w-5 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
-              <p className="text-base font-medium"> {/* Clearer uploader name */}
+              <p className="text-base font-medium">
                 {video.profiles ? `${video.profiles.first_name || ''} ${video.profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
               </p>
             </Link>
-            <div className="flex items-center space-x-4"> {/* Adjusted spacing */}
+            <div className="flex items-center space-x-4">
               <p className="text-sm">{video.views} views</p>
               <p className="text-sm">•</p>
               <p className="text-sm">{new Date(video.created_at).toLocaleDateString()}</p>
@@ -402,8 +402,8 @@ const WatchVideo = () => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between py-4 border-b"> {/* Added border-b and py-4 */}
-          <div className="flex items-center space-x-4"> {/* Increased space-x */}
+        <div className="flex items-center justify-between py-4 border-b">
+          <div className="flex items-center space-x-4">
             <Button variant="ghost" size="icon" onClick={handleLikeToggle} className={`flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}>
               <Heart className="h-5 w-5" fill={isLiked ? 'currentColor' : 'none'} />
               <span className="text-sm">{likes}</span>
@@ -433,24 +433,24 @@ const WatchVideo = () => {
           </div>
         </div>
 
-        <div className="py-4 border-b"> {/* Added py-4 and border-b */}
-          <div className="flex flex-wrap gap-2 mb-3"> {/* Adjusted margin */}
+        <div className="py-4 border-b">
+          <div className="flex flex-wrap gap-2 mb-3">
             {video.tags?.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-sm px-3 py-1">{tag}</Badge> {/* Slightly larger badges */}
+              <Badge key={index} variant="secondary" className="text-sm px-3 py-1">{tag}</Badge>
             ))}
           </div>
-          <p className="text-base text-foreground leading-relaxed">{video.description}</p> {/* Improved readability */}
+          <p className="text-base text-foreground leading-relaxed">{video.description}</p>
         </div>
 
-        <div className="flex items-center space-x-4 py-4 border-b"> {/* Consistent padding and border */}
-          <Avatar className="h-14 w-14"> {/* Larger avatar */}
+        <div className="flex items-center space-x-4 py-4 border-b">
+          <Avatar className="h-14 w-14">
             <AvatarImage src={video.profiles?.avatar_url || undefined} alt={video.profiles?.first_name || 'Uploader'} />
             <AvatarFallback>
               <LucideUser className="h-7 w-7 text-muted-foreground" />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <Link to={`/profile/${video.user_id}`} className="font-semibold text-lg hover:underline"> {/* Larger uploader name */}
+            <Link to={`/profile/${video.user_id}`} className="font-semibold text-lg hover:underline">
               {video.profiles ? `${video.profiles.first_name || ''} ${video.profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
             </Link>
             <p className="text-sm text-muted-foreground">Uploader</p>
@@ -487,7 +487,7 @@ const WatchVideo = () => {
               </Button>
             </div>
           )}
-          <div className="space-y-6"> {/* Increased space-y for comments */}
+          <div className="space-y-6">
             {renderComments(comments)}
           </div>
         </div>
