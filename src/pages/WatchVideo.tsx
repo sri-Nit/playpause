@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getVideoById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory, getOrCreateConversation } from '@/lib/video-store';
-import VideoPlayer from '@/components/VideoPlayer';
+import VideoControlsOverlay from '@/components/VideoControlsOverlay'; // Import the new overlay component
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2, History, MessageSquare } from 'lucide-react';
@@ -23,7 +23,7 @@ const WatchVideo = () => {
   const navigate = useNavigate();
   const { user, isLoading: isSessionLoading } = useSession();
   const [video, setVideo] = useState<Video | null>(null);
-  const [uploaderProfile, setUploaderProfile] = useState<Profile | null>(null); // Keep for initial state, will be set from video.profiles
+  const [uploaderProfile, setUploaderProfile] = useState<Profile | null>(null);
   const [likes, setLikes] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [comments, setComments] = useState<CommentWithProfile[]>([]);
@@ -75,22 +75,19 @@ const WatchVideo = () => {
         }
 
         setVideo(fetchedVideo);
-        // Uploader profile is now part of the fetchedVideo object
         setUploaderProfile(fetchedVideo.profiles || null);
 
         const fetchedLikes = await getLikesForVideo(id);
         setLikes(fetchedLikes.length);
         if (user) {
           setIsLiked(fetchedLikes.some(like => like.user_id === user.id));
-          // Check subscription status
-          if (fetchedVideo.user_id !== user.id) { // Don't show follow button for own videos
+          if (fetchedVideo.user_id !== user.id) {
             const followingStatus = await isFollowing(user.id, fetchedVideo.user_id);
             setIsFollowingUploader(followingStatus);
           }
         }
 
         const fetchedComments = await getCommentsForVideo(id);
-        // Organize comments into a tree structure for replies
         const commentMap = new Map<string, CommentWithProfile>();
         fetchedComments.forEach(comment => {
           commentMap.set(comment.id, { ...comment, replies: [] });
@@ -169,7 +166,7 @@ const WatchVideo = () => {
         setNewCommentText('');
         setReplyText('');
         setReplyingToCommentId(null);
-        fetchVideoDetails(); // Re-fetch comments to update the tree structure
+        fetchVideoDetails();
       }
     } catch (err: any) {
       toast.error(err.message || 'Failed to post comment.');
@@ -185,7 +182,7 @@ const WatchVideo = () => {
     try {
       await deleteComment(commentId);
       toast.success('Comment deleted!');
-      fetchVideoDetails(); // Re-fetch comments to update the tree structure
+      fetchVideoDetails();
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete comment.');
       console.error(err);
@@ -202,7 +199,7 @@ const WatchVideo = () => {
     try {
       await deleteVideo(id);
       toast.success('Video deleted successfully!');
-      navigate('/'); // Redirect to home page after deletion
+      navigate('/');
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete video.');
       console.error(err);
@@ -218,7 +215,7 @@ const WatchVideo = () => {
     }
     if (!id) return;
 
-    setIsSubscribing(true); // Using this state for general loading during edit
+    setIsSubscribing(true);
     const loadingToastId = toast.loading('Updating video details...');
 
     try {
@@ -230,7 +227,7 @@ const WatchVideo = () => {
       });
       if (updatedVideo) {
         setVideo(updatedVideo);
-        setUploaderProfile(updatedVideo.profiles || null); // Update uploader profile from the new video object
+        setUploaderProfile(updatedVideo.profiles || null);
         toast.success('Video updated successfully!', { id: loadingToastId });
       }
     } catch (err: any) {
@@ -244,11 +241,11 @@ const WatchVideo = () => {
 
   const handleFollowToggle = async () => {
     if (!user || !uploaderProfile) {
-      toast.error('You must be logged in to join a crew.'); // Changed text
+      toast.error('You must be logged in to join a crew.');
       return;
     }
     if (user.id === uploaderProfile.id) {
-      toast.info("You cannot join your own crew."); // Changed text
+      toast.info("You cannot join your own crew.");
       return;
     }
 
@@ -257,14 +254,14 @@ const WatchVideo = () => {
       if (isFollowingUploader) {
         await removeSubscription(user.id, uploaderProfile.id);
         setIsFollowingUploader(false);
-        toast.success(`Left ${uploaderProfile.first_name || 'creator'}'s crew.`); // Changed text
+        toast.success(`Left ${uploaderProfile.first_name || 'creator'}'s crew.`);
       } else {
         await addSubscription(user.id, uploaderProfile.id);
         setIsFollowingUploader(true);
-        toast.success(`Joined ${uploaderProfile.first_name || 'creator'}'s crew!`); // Changed text
+        toast.success(`Joined ${uploaderProfile.first_name || 'creator'}'s crew!`);
       }
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update crew status.'); // Changed text
+      toast.error(err.message || 'Failed to update crew status.');
       console.error(err);
     } finally {
       setIsSubscribing(false);
@@ -276,7 +273,7 @@ const WatchVideo = () => {
       toast.error('No video to share.');
       return;
     }
-    const videoUrl = window.location.href; // Get the current URL of the video page
+    const videoUrl = window.location.href;
     try {
       await navigator.clipboard.writeText(videoUrl);
       toast.success('Video link copied to clipboard!');
@@ -308,7 +305,7 @@ const WatchVideo = () => {
         } else if (conversation.status === 'pending') {
           toast.info('Message request sent! The creator needs to accept it.');
           navigate('/messages', { state: { conversationId: conversation.id } });
-        } else { // 'accepted'
+        } else {
           toast.success('Conversation opened!');
           navigate('/messages', { state: { conversationId: conversation.id } });
         }
@@ -377,7 +374,13 @@ const WatchVideo = () => {
   return (
     <div className="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2">
-        <VideoPlayer videoUrl={video.video_url} title={video.title} thumbnailUrl={video.thumbnail_url} onProgressThresholdMet={handleVideoProgressThresholdMet} videoId={video.id} />
+        <VideoControlsOverlay // Use the new overlay component here
+          videoUrl={video.video_url}
+          title={video.title}
+          thumbnailUrl={video.thumbnail_url}
+          onProgressThresholdMet={handleVideoProgressThresholdMet}
+          videoId={video.id}
+        />
         
         <div className="mt-4 mb-4">
           <h1 className="text-3xl font-bold mb-1">{video.title}</h1>
@@ -435,7 +438,6 @@ const WatchVideo = () => {
         </div>
         <p className="text-muted-foreground mb-6">{video.description}</p>
 
-        {/* Uploader Info (simplified as creator name is now above) */}
         <div className="flex items-center space-x-4 border-t border-b py-4 mb-6">
           <Avatar className="h-12 w-12">
             <AvatarImage src={video.profiles?.avatar_url || undefined} alt={video.profiles?.first_name || 'Uploader'} />
@@ -466,7 +468,6 @@ const WatchVideo = () => {
           )}
         </div>
 
-        {/* Comments Section */}
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4">{comments.length} Comments</h2>
           {user && (
@@ -489,7 +490,6 @@ const WatchVideo = () => {
       </div>
 
       <div className="lg:col-span-1">
-        {/* Related Videos (Placeholder) */}
         <h2 className="text-2xl font-bold mb-4">Related Videos</h2>
         <div className="space-y-4">
           <div className="bg-muted p-4 rounded-md text-muted-foreground">
@@ -498,7 +498,6 @@ const WatchVideo = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -514,7 +513,6 @@ const WatchVideo = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Video Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -566,7 +564,6 @@ const WatchVideo = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Reply Dialog (for WatchVideo page) */}
       <Dialog open={!!replyingToCommentId} onOpenChange={() => setReplyingToCommentId(null)}>
         <DialogContent>
           <DialogHeader>

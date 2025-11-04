@@ -4,27 +4,33 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 interface VideoPlayerProps {
   videoUrl: string;
   title: string;
-  thumbnailUrl: string; // New prop for thumbnail
+  thumbnailUrl: string;
   onProgressThresholdMet: (videoId: string) => void;
   videoId: string;
+  playbackSpeed: number; // New prop for playback speed
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, title, thumbnailUrl, onProgressThresholdMet, videoId }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, title, thumbnailUrl, onProgressThresholdMet, videoId, playbackSpeed }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasMetThreshold, setHasMetThreshold] = useState(false);
 
   useEffect(() => {
     setHasMetThreshold(false);
-    // Attempt to play the video when component mounts or videoId/videoUrl changes
     if (videoRef.current) {
-      videoRef.current.load(); // Ensure video element is ready to load new source
+      videoRef.current.load();
+      videoRef.current.playbackRate = playbackSpeed; // Apply initial playback speed
       videoRef.current.play().catch(error => {
-        // Autoplay might be blocked by browser policies (e.g., no user interaction, not muted)
         console.warn("Autoplay prevented:", error);
-        // Optionally, you could show a play button here if autoplay fails
       });
     }
-  }, [videoId, videoUrl]); // Re-run effect if videoId or videoUrl changes
+  }, [videoId, videoUrl]);
+
+  // Effect to update playback speed when the prop changes
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = playbackSpeed;
+    }
+  }, [playbackSpeed]);
 
   const handleTimeUpdate = () => {
     const video = videoRef.current;
@@ -46,11 +52,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, title, thumbnailUrl
           src={videoUrl}
           title={title}
           className="w-full h-full rounded-md object-cover"
-          poster={thumbnailUrl} // Use the actual thumbnail URL
+          poster={thumbnailUrl}
           onTimeUpdate={handleTimeUpdate}
-          autoPlay // Play automatically
-          muted // Start muted to increase autoplay success rate
-          playsInline // Important for iOS devices
+          autoPlay
+          muted
+          playsInline
         >
           Your browser does not support the video tag.
         </video>
