@@ -390,25 +390,23 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
               <span className="sr-only">Fast forward 5 seconds</span>
             </Button>
             
-            {/* Volume control with hover to expand */}
-            <div className="relative group flex items-center">
+            {/* Volume control with always-visible slider */}
+            <div className="flex items-center space-x-2">
               <Button variant="ghost" size="icon" onClick={handleMuteToggle} className="text-white hover:bg-white/20">
                 {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
               </Button>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-black/70 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto min-w-[100px]">
-                <Slider
-                  value={[isMuted ? 0 : volume * 100]}
-                  max={100}
-                  step={1}
-                  onValueChange={handleVolumeChange}
-                  className="w-24 cursor-pointer"
-                  thumbClassName="w-3 h-3 bg-primary rounded-full border-2 border-white"
-                  trackClassName="bg-gray-600 h-1 rounded-full"
-                  rangeClassName="bg-primary h-1 rounded-full"
-                  aria-label="Volume control"
-                />
-              </div>
+              <Slider
+                value={[isMuted ? 0 : volume * 100]}
+                max={100}
+                step={1}
+                onValueChange={handleVolumeChange}
+                className="w-24 cursor-pointer"
+                thumbClassName="w-3 h-3 bg-primary rounded-full border-2 border-white"
+                trackClassName="bg-gray-600 h-1 rounded-full"
+                rangeClassName="bg-primary h-1 rounded-full"
+                aria-label="Volume control"
+              />
             </div>
 
             <div className="text-sm font-mono">
