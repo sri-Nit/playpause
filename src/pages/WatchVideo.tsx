@@ -331,7 +331,7 @@ const WatchVideo = () => {
               {new Date(comment.created_at).toLocaleString()}
             </span>
           </div>
-          <p className="text-sm">{comment.text}</p>
+          <p className="text-sm mt-1">{comment.text}</p>
           <div className="flex space-x-2 mt-2">
             {user && user.id === comment.user_id && (
               <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-red-500 hover:text-red-700" onClick={() => handleDeleteComment(comment.id)}>
@@ -355,7 +355,7 @@ const WatchVideo = () => {
   );
 
   if (isLoading) {
-    return <div className="text-center text-muted-foreground">Loading video...</div>;
+    return <div className="text-center text-muted-foreground py-10">Loading video...</div>;
   }
 
   if (error) {
@@ -363,7 +363,7 @@ const WatchVideo = () => {
   }
 
   if (!video) {
-    return <div className="text-center text-muted-foreground">Video not found.</div>;
+    return <div className="text-center text-muted-foreground py-10">Video not found.</div>;
   }
 
   const isOwner = user && user.id === video.user_id;
@@ -379,71 +379,78 @@ const WatchVideo = () => {
           videoId={video.id}
         />
         
-        <div className="mt-4 mb-4">
-          <h1 className="text-3xl font-bold mb-1">{video.title}</h1>
-          <div className="flex justify-between items-center text-muted-foreground text-sm">
-            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline">
-              <Avatar className="h-8 w-8">
+        <div className="mt-6 border-b pb-4"> {/* Added border-b and pb-4 for separation */}
+          <h1 className="text-4xl font-extrabold mb-2 leading-tight">{video.title}</h1> {/* Larger, bolder title */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-muted-foreground text-sm mb-4">
+            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline mb-2 sm:mb-0">
+              <Avatar className="h-9 w-9"> {/* Slightly larger avatar */}
                 <AvatarImage src={video.profiles?.avatar_url || undefined} alt={video.profiles?.first_name || 'Creator'} />
                 <AvatarFallback>
-                  <LucideUser className="h-4 w-4 text-muted-foreground" />
+                  <LucideUser className="h-5 w-5 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
-              <p className="text-base">
+              <p className="text-base font-medium"> {/* Clearer uploader name */}
                 {video.profiles ? `${video.profiles.first_name || ''} ${video.profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
               </p>
             </Link>
-            <div className="flex items-center space-x-2">
-              <p>{video.views} views</p>
-              <p>•</p>
-              <p>{new Date(video.created_at).toLocaleDateString()}</p>
+            <div className="flex items-center space-x-4"> {/* Adjusted spacing */}
+              <p className="text-sm">{video.views} views</p>
+              <p className="text-sm">•</p>
+              <p className="text-sm">{new Date(video.created_at).toLocaleDateString()}</p>
               {video.status === 'draft' && <Badge variant="secondary" className="ml-2">Draft</Badge>}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-muted-foreground text-sm mb-4">
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" onClick={handleLikeToggle} className={isLiked ? 'text-red-500' : ''}>
+        <div className="flex items-center justify-between py-4 border-b"> {/* Added border-b and py-4 */}
+          <div className="flex items-center space-x-4"> {/* Increased space-x */}
+            <Button variant="ghost" size="icon" onClick={handleLikeToggle} className={`flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}>
               <Heart className="h-5 w-5" fill={isLiked ? 'currentColor' : 'none'} />
+              <span className="text-sm">{likes}</span>
             </Button>
-            <span>{likes}</span>
-            <Button variant="ghost" size="icon" onClick={handleShareVideo}>
+            <Button variant="ghost" size="icon" onClick={handleShareVideo} className="text-muted-foreground hover:text-foreground">
               <Share2 className="h-5 w-5" />
+              <span className="sr-only">Share</span>
             </Button>
             {isOwner && (
               <>
-                <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)}>
+                <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)} className="text-muted-foreground hover:text-foreground">
                   <Edit className="h-5 w-5" />
+                  <span className="sr-only">Edit</span>
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => setIsDeleteDialogOpen(true)}>
-                  <Trash2 className="h-5 w-5 text-red-500" />
+                <Button variant="ghost" size="icon" onClick={() => setIsDeleteDialogOpen(true)} className="text-red-500 hover:text-red-700">
+                  <Trash2 className="h-5 w-5" />
+                  <span className="sr-only">Delete</span>
                 </Button>
               </>
             )}
             {!isOwner && user && (
-              <Button variant="ghost" size="icon" onClick={() => toast.info('Reporting feature coming soon!')}>
+              <Button variant="ghost" size="icon" onClick={() => toast.info('Reporting feature coming soon!')} className="text-muted-foreground hover:text-foreground">
                 <Flag className="h-5 w-5" />
+                <span className="sr-only">Report</span>
               </Button>
             )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {video.tags?.map((tag, index) => (
-            <Badge key={index} variant="secondary">{tag}</Badge>
-          ))}
-        </div>
-        <p className="text-muted-foreground mb-6">{video.description}</p>
 
-        <div className="flex items-center space-x-4 border-t border-b py-4 mb-6">
-          <Avatar className="h-12 w-12">
+        <div className="py-4 border-b"> {/* Added py-4 and border-b */}
+          <div className="flex flex-wrap gap-2 mb-3"> {/* Adjusted margin */}
+            {video.tags?.map((tag, index) => (
+              <Badge key={index} variant="secondary" className="text-sm px-3 py-1">{tag}</Badge> {/* Slightly larger badges */}
+            ))}
+          </div>
+          <p className="text-base text-foreground leading-relaxed">{video.description}</p> {/* Improved readability */}
+        </div>
+
+        <div className="flex items-center space-x-4 py-4 border-b"> {/* Consistent padding and border */}
+          <Avatar className="h-14 w-14"> {/* Larger avatar */}
             <AvatarImage src={video.profiles?.avatar_url || undefined} alt={video.profiles?.first_name || 'Uploader'} />
             <AvatarFallback>
-              <LucideUser className="h-6 w-6 text-muted-foreground" />
+              <LucideUser className="h-7 w-7 text-muted-foreground" />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <Link to={`/profile/${video.user_id}`} className="font-semibold hover:underline">
+            <Link to={`/profile/${video.user_id}`} className="font-semibold text-lg hover:underline"> {/* Larger uploader name */}
               {video.profiles ? `${video.profiles.first_name || ''} ${video.profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
             </Link>
             <p className="text-sm text-muted-foreground">Uploader</p>
@@ -480,7 +487,7 @@ const WatchVideo = () => {
               </Button>
             </div>
           )}
-          <div className="space-y-4">
+          <div className="space-y-6"> {/* Increased space-y for comments */}
             {renderComments(comments)}
           </div>
         </div>
