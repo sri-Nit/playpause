@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getVideoById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory, getOrCreateConversation } from '@/lib/video-store';
-import VideoControlsOverlay from '@/components/VideoControlsOverlay'; // Import the new overlay component
+import CustomVideoPlayer from '@/components/CustomVideoPlayer'; // Import the new custom player component
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2, History, MessageSquare } from 'lucide-react';
@@ -50,8 +50,6 @@ const WatchVideo = () => {
         await addVideoToHistory(user.id, videoId);
       }
       sessionStorage.setItem(viewKey, 'true');
-      // Optionally, re-fetch video details to update the view count displayed on the page
-      // setVideo(prev => prev ? { ...prev, views: prev.views + 1 } : null);
     }
   }, [user, video?.status]);
 
@@ -66,7 +64,6 @@ const WatchVideo = () => {
     try {
       const fetchedVideo = await getVideoById(id);
       if (fetchedVideo) {
-        // Only allow viewing if published or if the current user is the owner
         if (fetchedVideo.status === 'draft' && (!user || user.id !== fetchedVideo.user_id)) {
           setError('This video is a draft and not publicly available.');
           setVideo(null);
@@ -374,7 +371,7 @@ const WatchVideo = () => {
   return (
     <div className="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2">
-        <VideoControlsOverlay // Use the new overlay component here
+        <CustomVideoPlayer // Use the new custom player component here
           videoUrl={video.video_url}
           title={video.title}
           thumbnailUrl={video.thumbnail_url}
@@ -571,7 +568,7 @@ const WatchVideo = () => {
             <DialogDescription>
               Replying to a comment.
             </DialogDescription>
-          </DialogHeader>
+          </DialogDescription>
           <div className="grid gap-4 py-4">
             <Textarea
               placeholder="Write your reply..."
