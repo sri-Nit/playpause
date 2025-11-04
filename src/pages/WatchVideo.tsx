@@ -244,11 +244,11 @@ const WatchVideo = () => {
 
   const handleFollowToggle = async () => {
     if (!user || !uploaderProfile) {
-      toast.error('You must be logged in to follow a creator.');
+      toast.error('You must be logged in to join a crew.'); // Changed text
       return;
     }
     if (user.id === uploaderProfile.id) {
-      toast.info("You cannot follow yourself.");
+      toast.info("You cannot join your own crew."); // Changed text
       return;
     }
 
@@ -257,14 +257,14 @@ const WatchVideo = () => {
       if (isFollowingUploader) {
         await removeSubscription(user.id, uploaderProfile.id);
         setIsFollowingUploader(false);
-        toast.success(`Unfollowed ${uploaderProfile.first_name || 'creator'}.`);
+        toast.success(`Left ${uploaderProfile.first_name || 'creator'}'s crew.`); // Changed text
       } else {
         await addSubscription(user.id, uploaderProfile.id);
         setIsFollowingUploader(true);
-        toast.success(`Now following ${uploaderProfile.first_name || 'creator'}!`);
+        toast.success(`Joined ${uploaderProfile.first_name || 'creator'}'s crew!`); // Changed text
       }
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update subscription status.');
+      toast.error(err.message || 'Failed to update crew status.'); // Changed text
       console.error(err);
     } finally {
       setIsSubscribing(false);
@@ -422,7 +422,7 @@ const WatchVideo = () => {
               onClick={handleFollowToggle} 
               disabled={isSubscribing}
             >
-              {isSubscribing ? '...' : isFollowingUploader ? <><Check className="mr-2 h-4 w-4" /> Following</> : <><Plus className="mr-2 h-4 w-4" /> Follow</>}
+              {isSubscribing ? '...' : isFollowingUploader ? <><Check className="mr-2 h-4 w-4" /> Joined Crew</> : <><Plus className="mr-2 h-4 w-4" /> Join Crew</>} {/* Changed text */}
             </Button>
           )}
         </div>
