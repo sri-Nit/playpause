@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Settings, Play, Pause } from 'lucide-react';
+import { Settings, Play, Pause, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Slider } from '@/components/ui/slider'; // Assuming you have a Slider component
 
 interface CustomVideoPlayerProps {
   videoUrl: string;
@@ -21,6 +22,7 @@ interface CustomVideoPlayerProps {
 }
 
 const playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+const qualityOptions = ['Auto', '1080p', '720p', '480p']; // Placeholder for quality options
 
 const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   videoUrl,
@@ -35,9 +37,13 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
+  const [volume, setVolume] = useState<number>(0.5); // Default volume
+  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [hasMetThreshold, setHasMetThreshold] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [currentQuality, setCurrentQuality] = useState('Auto'); // State for quality
 
   const formatTime = (timeInSeconds: number) => {
     const minutes = Math.floor(timeInSeconds / 60);
@@ -59,6 +65,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
+      videoRef.current.volume = volume; // Set initial volume
+      videoRef.current.muted = isMuted; // Apply initial mute state
     }
   };
 
@@ -75,12 +83,70 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     }
   }, [hasMetThreshold, onProgressThresholdMet, videoId]);
 
+  const handleProgressChange = (value: number[]) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = value[0];
+      setCurrentTime(value[0]);
+    }
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    const newVolume = value[0] / 100;
+    setVolume(newVolume);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume;
+      if (newVolume > 0 && isMuted) {
+        setIsMuted(false);
+        videoRef.current.muted = false;
+      } else if (newVolume === 0 && !isMuted) {
+        setIsMuted(true);
+        videoRef.current.muted = true;
+      }
+    }
+  };
+
+  const handleMuteToggle = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+      if (!isMuted && volume === 0) { // If unmuting from 0 volume, set to a default
+        setVolume(0.5);
+        videoRef.current.volume = 0.5;
+      }
+    }
+  };
+
   const handleSpeedChange = (speed: string) => {
     const newSpeed = parseFloat(speed);
     setPlaybackSpeed(newSpeed);
     if (videoRef.current) {
       videoRef.current.playbackRate = newSpeed;
     }
+  };
+
+  const handleQualityChange = (quality: string) => {
+    setCurrentQuality(quality);
+    // NOTE: Implementing actual video quality switching requires multiple video sources
+    // (e.g., different video_url for each resolution) and a more complex video player
+    // implementation (e.g., using HLS/DASH). For now, this is a UI-only change.
+    console.log(`Changing quality to: ${quality}`);
+    // If you had multiple URLs, you would update videoRef.current.src here
+  };
+
+  const handleFullScreenToggle = () => {
+    if (containerRef.current) {
+      if (!document.fullscreenElement) {
+        containerRef.current.requestFullscreen().catch(err => {
+          console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  const handleFullScreenChange = () => {
+    setIsFullScreen(!!document.fullscreenElement);
   };
 
   const handleMouseEnter = () => {
@@ -101,6 +167,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     if (videoRef.current) {
       videoRef.current.load();
       videoRef.current.playbackRate = playbackSpeed;
+      videoRef.current.volume = volume;
+      videoRef.current.muted = isMuted; // Ensure muted state is applied on load
       videoRef.current.play().catch(error => {
         console.warn("Autoplay prevented:", error);
       });
@@ -108,11 +176,20 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     }
   }, [videoId, videoUrl]);
 
+  // Effect to update playback speed when the prop changes
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.playbackRate = playbackSpeed;
     }
   }, [playbackSpeed]);
+
+  // Add and remove fullscreen event listener
+  useEffect(() => {
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullScreenChange);
+    };
+  }, []);
 
   // Clear timeout on unmount
   useEffect(() => {
@@ -130,6 +207,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseEnter} // Keep controls visible on mouse movement
       onMouseLeave={handleMouseLeave}
+      onClick={handlePlayPause} // Toggle play/pause on video click
     >
       <AspectRatio ratio={16 / 9}>
         <video
@@ -150,18 +228,54 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         </video>
       </AspectRatio>
 
+      {/* Play/Pause Overlay (only visible when paused and controls are shown) */}
+      {(!isPlaying && showControls) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity duration-300">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 w-20 h-20" onClick={handlePlayPause}>
+            <Play className="h-12 w-12" />
+            <span className="sr-only">Play</span>
+          </Button>
+        </div>
+      )}
+
       {/* Custom Controls Overlay */}
       <div
         className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 transition-opacity duration-300 ${
           showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
         }`}
       >
+        {/* Progress Bar */}
+        <Slider
+          value={[currentTime]}
+          max={duration}
+          step={0.1}
+          onValueChange={handleProgressChange}
+          className="w-full mb-2 cursor-pointer"
+          thumbClassName="w-4 h-4 bg-primary rounded-full border-2 border-white"
+          trackClassName="bg-gray-600 h-1 rounded-full"
+          rangeClassName="bg-primary h-1 rounded-full"
+        />
+
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center space-x-3">
             <Button variant="ghost" size="icon" onClick={handlePlayPause} className="text-white hover:bg-white/20">
               {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
             </Button>
+            <Button variant="ghost" size="icon" onClick={handleMuteToggle} className="text-white hover:bg-white/20">
+              {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+              <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
+            </Button>
+            <Slider
+              value={[isMuted ? 0 : volume * 100]}
+              max={100}
+              step={1}
+              onValueChange={handleVolumeChange}
+              className="w-24 cursor-pointer"
+              thumbClassName="w-3 h-3 bg-primary rounded-full border-2 border-white"
+              trackClassName="bg-gray-600 h-1 rounded-full"
+              rangeClassName="bg-primary h-1 rounded-full"
+            />
             <div className="text-sm font-mono">
               {formatTime(currentTime)} / {formatTime(duration)}
             </div>
@@ -185,8 +299,25 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Quality</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={currentQuality} onValueChange={handleQualityChange}>
+                  {qualityOptions.map((quality) => (
+                    <DropdownMenuRadioItem key={quality} value={quality}>
+                      {quality}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+                <p className="text-xs text-muted-foreground p-2">
+                  Note: Actual quality switching requires multiple video sources.
+                </p>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button variant="ghost" size="icon" onClick={handleFullScreenToggle} className="text-white hover:bg-white/20">
+              {isFullScreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+              <span className="sr-only">{isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+            </Button>
           </div>
         </div>
       </div>
