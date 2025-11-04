@@ -867,6 +867,7 @@ export const getOrCreateConversation = async (
     // If no existing conversation, create a new one
     const { data: recipientProfile, error: profileError } = await getProfileById(recipientId);
     if (profileError || !recipientProfile) {
+      console.error(`Recipient profile not found for ID: ${recipientId}`); // Added console log
       throw new Error('Recipient profile not found.');
     }
 
