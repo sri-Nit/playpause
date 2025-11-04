@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory, getOrCreateConversation } from '@/lib/video-store';
+import { getVideoById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory, getOrCreateConversation } from '@/lib/video-store';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ const WatchVideo = () => {
   const navigate = useNavigate();
   const { user, isLoading: isSessionLoading } = useSession();
   const [video, setVideo] = useState<Video | null>(null);
-  const [uploaderProfile, setUploaderProfile] = useState<Profile | null>(null);
+  const [uploaderProfile, setUploaderProfile] = useState<Profile | null>(null); // Keep for initial state, will be set from video.profiles
   const [likes, setLikes] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [comments, setComments] = useState<CommentWithProfile[]>([]);
@@ -75,9 +75,8 @@ const WatchVideo = () => {
         }
 
         setVideo(fetchedVideo);
-        
-        const fetchedProfile = await getProfileById(fetchedVideo.user_id);
-        setUploaderProfile(fetchedProfile);
+        // Uploader profile is now part of the fetchedVideo object
+        setUploaderProfile(fetchedVideo.profiles || null);
 
         const fetchedLikes = await getLikesForVideo(id);
         setLikes(fetchedLikes.length);
@@ -231,6 +230,7 @@ const WatchVideo = () => {
       });
       if (updatedVideo) {
         setVideo(updatedVideo);
+        setUploaderProfile(updatedVideo.profiles || null); // Update uploader profile from the new video object
         toast.success('Video updated successfully!', { id: loadingToastId });
       }
     } catch (err: any) {
@@ -382,15 +382,15 @@ const WatchVideo = () => {
         <div className="mt-4 mb-4">
           <h1 className="text-3xl font-bold mb-1">{video.title}</h1>
           <div className="flex justify-between items-center text-muted-foreground text-sm">
-            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline"> {/* Link to creator profile */}
-              <Avatar className="h-8 w-8"> {/* Larger avatar for watch page */}
-                <AvatarImage src={uploaderProfile?.avatar_url || undefined} alt={uploaderProfile?.first_name || 'Creator'} />
+            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={video.profiles?.avatar_url || undefined} alt={video.profiles?.first_name || 'Creator'} />
                 <AvatarFallback>
                   <LucideUser className="h-4 w-4 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
               <p className="text-base">
-                {uploaderProfile ? `${uploaderProfile.first_name || ''} ${uploaderProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+                {video.profiles ? `${video.profiles.first_name || ''} ${video.profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
               </p>
             </Link>
             <div className="flex items-center space-x-2">
@@ -438,18 +438,18 @@ const WatchVideo = () => {
         {/* Uploader Info (simplified as creator name is now above) */}
         <div className="flex items-center space-x-4 border-t border-b py-4 mb-6">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={uploaderProfile?.avatar_url || undefined} alt={uploaderProfile?.first_name || 'Uploader'} />
+            <AvatarImage src={video.profiles?.avatar_url || undefined} alt={video.profiles?.first_name || 'Uploader'} />
             <AvatarFallback>
               <LucideUser className="h-6 w-6 text-muted-foreground" />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <Link to={`/profile/${uploaderProfile?.id}`} className="font-semibold hover:underline">
-              {uploaderProfile ? `${uploaderProfile.first_name || ''} ${uploaderProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+            <Link to={`/profile/${video.user_id}`} className="font-semibold hover:underline">
+              {video.profiles ? `${video.profiles.first_name || ''} ${video.profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
             </Link>
             <p className="text-sm text-muted-foreground">Uploader</p>
           </div>
-          {!isOwner && user && uploaderProfile && (
+          {!isOwner && user && video.profiles && (
             <>
               <Button 
                 variant={isFollowingUploader ? "secondary" : "default"} 
@@ -457,7 +457,7 @@ const WatchVideo = () => {
                 disabled={isSubscribing}
                 className="mr-2"
               >
-                {isSubscribing ? '...' : isFollowingUploader ? <><Check className="mr-2 h-4 w-4" /> Joined Crew</> : <><Plus className="mr-2 h-4 w-4" /> Join Crew</>} {/* Changed text */}
+                {isSubscribing ? '...' : isFollowingUploader ? <><Check className="mr-2 h-4 w-4" /> Joined Crew</> : <><Plus className="mr-2 h-4 w-4" /> Join Crew</>}
               </Button>
               <Button variant="outline" onClick={handleInitiateMessage}>
                 <MessageSquare className="mr-2 h-4 w-4" /> Message
@@ -522,7 +522,7 @@ const WatchVideo = () => {
             <DialogDescription>
               Make changes to your video's title, description, and tags here.
             </DialogDescription>
-          </DialogHeader> {/* Corrected closing tag */}
+          </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="editTitle" className="text-right">

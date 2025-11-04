@@ -1,31 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Video, getProfileById, Profile } from '@/lib/video-store';
+import React from 'react';
+import { Video } from '@/lib/video-store'; // Video now includes profiles
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Link } from 'react-router-dom';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
-import { User as LucideUser } from 'lucide-react'; // Import User icon
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User as LucideUser } from 'lucide-react';
 
 interface VideoCardProps {
   video: Video;
 }
 
 const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
-  const [creatorProfile, setCreatorProfile] = useState<Profile | null>(null);
-
-  useEffect(() => {
-    const fetchCreatorProfile = async () => {
-      if (video.user_id) {
-        try {
-          const profile = await getProfileById(video.user_id);
-          setCreatorProfile(profile);
-        } catch (error) {
-          console.error('Error fetching creator profile for video card:', error);
-        }
-      }
-    };
-    fetchCreatorProfile();
-  }, [video.user_id]);
+  // Creator profile is now directly available on the video object
+  const creatorProfile = video.profiles;
 
   return (
     <Link to={`/watch/${video.id}`} className="block">
@@ -44,16 +31,16 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
         </CardContent>
         <CardHeader className="p-4">
           <CardTitle className="text-lg font-semibold line-clamp-2 mb-1">{video.title}</CardTitle>
-          <div className="flex items-center justify-between text-sm text-muted-foreground mt-1"> {/* Added mt-1 for spacing */}
-            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline"> {/* Link to creator profile */}
-              <Avatar className="h-6 w-6"> {/* Smaller avatar for card */}
+          <div className="flex items-center justify-between text-sm text-muted-foreground mt-1">
+            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline">
+              <Avatar className="h-6 w-6">
                 <AvatarImage src={creatorProfile?.avatar_url || undefined} alt={creatorProfile?.first_name || 'Creator'} />
                 <AvatarFallback>
                   <LucideUser className="h-3 w-3 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
               <CardDescription className="text-sm text-muted-foreground">
-                {creatorProfile ? `${creatorProfile.first_name || ''} ${creatorProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+                {creatorProfile ? `${creatorProfile.first_name || ''} ${creatorProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Unknown Creator'}
               </CardDescription>
             </Link>
             <CardDescription className="text-sm text-muted-foreground">

@@ -47,7 +47,7 @@ const CreatorProfilePage = () => {
       }
       setCreatorProfile(profile);
 
-      // Fetch all videos for the creator, then filter for published ones
+      // getCreatorVideos now returns videos with joined profile data
       const allVideos = await getCreatorVideos(creatorId);
       const publishedVideos = allVideos.filter(video => video.status === 'published');
       setCreatorVideos(publishedVideos);
