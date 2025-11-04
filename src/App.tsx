@@ -8,12 +8,11 @@ import NotFound from "./pages/NotFound";
 import UploadVideo from "./pages/UploadVideo";
 import Layout from "./components/Layout";
 import AuthPage from "./pages/AuthPage";
-import ProfilePage from "./pages/Profile";
+import YouPage from "./pages/You"; // Changed from ProfilePage to YouPage
 import SignUp from "./pages/SignUp";
 import WatchVideo from "./pages/WatchVideo";
 import SearchResults from "./pages/SearchResults";
 import CreatorDashboard from "./pages/CreatorDashboard";
-import WatchHistory from "./pages/WatchHistory"; // Import the new WatchHistory page
 import { SessionContextProvider } from "./components/SessionContextProvider";
 
 const queryClient = new QueryClient();
@@ -31,11 +30,11 @@ const App = () => (
               <Route path="/upload" element={<UploadVideo />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/you" element={<YouPage />} /> {/* Changed from /profile to /you */}
               <Route path="/watch/:id" element={<WatchVideo />} />
               <Route path="/search" element={<SearchResults />} />
               <Route path="/dashboard" element={<CreatorDashboard />} />
-              <Route path="/history" element={<WatchHistory />} /> {/* Add the new watch history route */}
+              {/* The /history route is now integrated into /you, so it's removed here */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -746,3 +746,64 @@ export const getWatchHistory = async (userId: string): Promise<WatchHistory[]> =
     throw error;
   }
 };
+
+// New function to get videos liked by a specific user
+export const getLikedVideosByUser = async (userId: string): Promise<Video[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('likes')
+      .select('video_id, videos(*)') // Select video_id and all columns from the videos table
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching liked videos:', error);
+      throw new Error(error.message);
+    }
+    // Extract the video objects from the nested structure
+    return data.map(item => item.videos).filter(Boolean) as Video[];
+  } catch (error) {
+    console.error('Unexpected error fetching liked videos:', error);
+    throw error;
+  }
+};
+
+// New function to get videos from channels a user is subscribed to
+export const getSubscribedChannelVideos = async (userId: string): Promise<Video[]> => {
+  try {
+    // First, get the list of creators the user is following
+    const { data: subscriptions, error: subError } = await supabase
+      .from('subscriptions')
+      .select('following_id')
+      .eq('follower_id', userId);
+
+    if (subError) {
+      console.error('Error fetching subscriptions:', subError);
+      throw new Error(subError.message);
+    }
+
+    const followingIds = subscriptions.map(sub => sub.following_id);
+
+    if (followingIds.length === 0) {
+      return []; // No subscriptions, so no videos to fetch
+    }
+
+    // Then, get published videos from those creators
+    const { data: videos, error: videoError } = await supabase
+      .from('videos')
+      .select('*')
+      .in('user_id', followingIds)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false });
+
+    if (videoError) {
+      console.error('Error fetching subscribed channel videos:', videoError);
+      throw new Error(videoError.message);
+    }
+
+    return videos as Video[];
+  } catch (error) {
+    console.error('Unexpected error fetching subscribed channel videos:', error);
+    throw error;
+  }
+};
