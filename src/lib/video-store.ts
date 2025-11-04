@@ -641,23 +641,24 @@ export const addReport = async (reporterId: string, videoId: string, reason: str
 };
 
 // Function to get analytics for a specific video (likes and comments count)
-// This function is now optimized to fetch counts in bulk if given multiple video IDs
 export const getVideoAnalytics = async (videoIds: string[]): Promise<Record<string, { likes: number; comments: number }>> => {
   if (videoIds.length === 0) {
     return {};
   }
 
   try {
+    // Fetch all likes for the given video IDs
     const { data: likesData, error: likesError } = await supabase
       .from('likes')
-      .select('video_id', { count: 'exact' })
+      .select('video_id')
       .in('video_id', videoIds);
 
     if (likesError) throw new Error(likesError.message);
 
+    // Fetch all comments for the given video IDs
     const { data: commentsData, error: commentsError } = await supabase
       .from('comments')
-      .select('video_id', { count: 'exact' })
+      .select('video_id')
       .in('video_id', videoIds);
 
     if (commentsError) throw new Error(commentsError.message);
@@ -667,13 +668,15 @@ export const getVideoAnalytics = async (videoIds: string[]): Promise<Record<stri
       analyticsMap[id] = { likes: 0, comments: 0 };
     });
 
-    likesData.forEach((item: any) => {
+    // Aggregate likes
+    likesData.forEach((item: { video_id: string }) => {
       if (analyticsMap[item.video_id]) {
         analyticsMap[item.video_id].likes++;
       }
     });
 
-    commentsData.forEach((item: any) => {
+    // Aggregate comments
+    commentsData.forEach((item: { video_id: string }) => {
       if (analyticsMap[item.video_id]) {
         analyticsMap[item.video_id].comments++;
       }
@@ -848,7 +851,7 @@ export const getOrCreateConversation = async (
     // Try to find an existing conversation
     const { data: existingConversation, error: fetchError } = await supabase
       .from('conversations')
-      .select('*, user1:user1_id(id, first_name, last_name, avatar_url), user2:user2_id(id, first_name, last_name, avatar_url)')
+      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
       .eq('user1_id', user1_id)
       .eq('user2_id', user2_id)
       .single();
@@ -880,7 +883,7 @@ export const getOrCreateConversation = async (
     const { data: newConversation, error: insertError } = await supabase
       .from('conversations')
       .insert({ user1_id, user2_id, status: conversationStatus })
-      .select('*, user1:user1_id(id, first_name, last_name, avatar_url), user2:user2_id(id, first_name, last_name, avatar_url)')
+      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
       .single();
 
     if (insertError) {
@@ -901,7 +904,7 @@ export const getConversationsForUser = async (userId: string): Promise<Conversat
   try {
     const { data, error } = await supabase
       .from('conversations')
-      .select('*, user1:user1_id(id, first_name, last_name, avatar_url), user2:user2_id(id, first_name, last_name, avatar_url)')
+      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
       .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
       .order('last_message_at', { ascending: false });
 
@@ -980,7 +983,7 @@ export const updateConversationStatus = async (
       .from('conversations')
       .update({ status })
       .eq('id', conversationId)
-      .select('*, user1:user1_id(id, first_name, last_name, avatar_url), user2:user2_id(id, first_name, last_name, avatar_url)')
+      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
       .single();
 
     if (error) {
