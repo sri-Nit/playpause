@@ -10,9 +10,10 @@ import { toast } from 'sonner';
 import { User as LucideUser } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getLikedVideosByUser, getWatchHistory, getSubscribedChannelVideos, Video, WatchHistory as WatchHistoryEntry } from '@/lib/video-store';
+import { getLikedVideosByUser, getWatchHistory, getSubscribedChannelVideos, Video, WatchHistory as WatchHistoryEntry, updateProfileMessagePreference } from '@/lib/video-store'; // Import updateProfileMessagePreference
 import VideoCard from '@/components/VideoCard';
 import { useNavigate } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Import Select components
 
 interface Profile {
   id: string;
@@ -20,6 +21,7 @@ interface Profile {
   last_name: string | null;
   avatar_url: string | null;
   updated_at: string | null;
+  message_preference: 'open' | 'requests' | 'blocked'; // Include message_preference
 }
 
 const YouPage = () => {
@@ -32,6 +34,7 @@ const YouPage = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
+  const [messagePreference, setMessagePreference] = useState<'open' | 'requests' | 'blocked'>('open'); // State for message preference
 
   // States for new sections
   const [likedVideos, setLikedVideos] = useState<Video[]>([]);
@@ -55,6 +58,7 @@ const YouPage = () => {
         setFirstName(data.first_name || '');
         setLastName(data.last_name || '');
         setAvatarUrl(data.avatar_url || '');
+        setMessagePreference(data.message_preference || 'open'); // Set message preference
       }
     }
   }, [user]);
@@ -105,7 +109,6 @@ const YouPage = () => {
     if (user) {
       setIsContentLoading(true);
       fetchProfile();
-      // Only fetch data for the active tab to avoid unnecessary calls
       if (activeTab === 'liked') {
         fetchLikedVideos();
       } else if (activeTab === 'history') {
@@ -172,6 +175,7 @@ const YouPage = () => {
           last_name: lastName,
           avatar_url: newAvatarUrl,
           updated_at: new Date().toISOString(),
+          message_preference: messagePreference, // Update message preference
         })
         .eq('id', user.id);
 
@@ -265,6 +269,19 @@ const YouPage = () => {
                     placeholder="https://example.com/avatar.jpg"
                     disabled={!!avatarFile}
                   />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="messagePreference">Message Preference</Label>
+                  <Select value={messagePreference} onValueChange={(value: 'open' | 'requests' | 'blocked') => setMessagePreference(value)}>
+                    <SelectTrigger id="messagePreference">
+                      <SelectValue placeholder="Select message preference" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Open (Anyone can message directly)</SelectItem>
+                      <SelectItem value="requests">Requests (Non-crew messages go to requests)</SelectItem>
+                      <SelectItem value="blocked">Blocked (Do not accept messages)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button onClick={handleUpdateProfile} disabled={isUpdating}>
                   {isUpdating ? 'Updating...' : 'Update Profile'}
