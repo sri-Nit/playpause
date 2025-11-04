@@ -47,7 +47,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
-          className="w-48 bg-black/70 text-white border-none z-50"
+          className="w-48 bg-black/70 text-white border-none z-[9999]" // Increased z-index to ensure visibility
           side="top"
           sideOffset={10}
           align="end"
