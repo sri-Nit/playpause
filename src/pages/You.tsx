@@ -50,7 +50,7 @@ const YouPage = () => {
         .eq('id', user.id)
         .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
         console.error('Error fetching profile:', error);
         toast.error('Failed to load profile data.');
       } else if (data) {
@@ -59,6 +59,26 @@ const YouPage = () => {
         setLastName(data.last_name || '');
         setAvatarUrl(data.avatar_url || '');
         setMessagePreference(data.message_preference || 'open'); // Set message preference
+      } else {
+        // Profile not found, create a new one
+        console.log('Profile not found for user, creating a new one.');
+        const { data: newProfileData, error: insertError } = await supabase
+          .from('profiles')
+          .insert({ id: user.id, first_name: user.user_metadata.first_name || null, last_name: user.user_metadata.last_name || null, message_preference: 'open' })
+          .select('*')
+          .single();
+
+        if (insertError) {
+          console.error('Error creating new profile:', insertError);
+          toast.error('Failed to create new profile.');
+        } else if (newProfileData) {
+          setProfile(newProfileData);
+          setFirstName(newProfileData.first_name || '');
+          setLastName(newProfileData.last_name || '');
+          setAvatarUrl(newProfileData.avatar_url || '');
+          setMessagePreference(newProfileData.message_preference || 'open');
+          toast.success('New profile created!');
+        }
       }
     }
   }, [user]);
