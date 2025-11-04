@@ -14,6 +14,7 @@ import WatchVideo from "./pages/WatchVideo";
 import SearchResults from "./pages/SearchResults";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import MessagesPage from "./pages/MessagesPage"; // Import MessagesPage
+import CreatorProfilePage from "./pages/CreatorProfilePage"; // Import CreatorProfilePage
 import { SessionContextProvider } from "./components/SessionContextProvider";
 
 const queryClient = new QueryClient();
@@ -35,7 +36,8 @@ const App = () => (
               <Route path="/watch/:id" element={<WatchVideo />} />
               <Route path="/search" element={<SearchResults />} />
               <Route path="/dashboard" element={<CreatorDashboard />} />
-              <Route path="/messages" element={<MessagesPage />} /> {/* New Messages Route */}
+              <Route path="/messages" element={<MessagesPage />} />
+              <Route path="/profile/:id" element={<CreatorProfilePage />} /> {/* New Creator Profile Route */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

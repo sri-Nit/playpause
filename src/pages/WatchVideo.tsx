@@ -382,7 +382,7 @@ const WatchVideo = () => {
         <div className="mt-4 mb-4">
           <h1 className="text-3xl font-bold mb-1">{video.title}</h1>
           <div className="flex justify-between items-center text-muted-foreground text-sm">
-            <div className="flex items-center space-x-2"> {/* Container for avatar and creator name */}
+            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline"> {/* Link to creator profile */}
               <Avatar className="h-8 w-8"> {/* Larger avatar for watch page */}
                 <AvatarImage src={uploaderProfile?.avatar_url || undefined} alt={uploaderProfile?.first_name || 'Creator'} />
                 <AvatarFallback>
@@ -392,7 +392,7 @@ const WatchVideo = () => {
               <p className="text-base">
                 {uploaderProfile ? `${uploaderProfile.first_name || ''} ${uploaderProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
               </p>
-            </div>
+            </Link>
             <div className="flex items-center space-x-2">
               <p>{video.views} views</p>
               <p>•</p>
