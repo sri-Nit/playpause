@@ -369,9 +369,9 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
           step={0.1}
           onValueChange={handleProgressChange}
           className="w-full mb-2 cursor-pointer"
-          thumbClassName="w-4 h-4 bg-secondary rounded-full border-2 border-white"
-          trackClassName="bg-gray-600 h-1 rounded-full"
-          rangeClassName="bg-secondary h-1 rounded-full"
+          thumbClassName="w-4 h-4 bg-white rounded-full border-2 border-white"
+          trackClassName="bg-white/30 h-1 rounded-full"
+          rangeClassName="bg-white h-1 rounded-full"
           aria-label="Video progress"
         />
 
@@ -402,9 +402,9 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
                 step={1}
                 onValueChange={handleVolumeChange}
                 className="w-24 cursor-pointer"
-                thumbClassName="w-3 h-3 bg-primary rounded-full border-2 border-white"
-                trackClassName="bg-gray-600 h-1 rounded-full"
-                rangeClassName="bg-primary h-1 rounded-full"
+                thumbClassName="w-3 h-3 bg-white rounded-full border-2 border-white"
+                trackClassName="bg-white/30 h-1 rounded-full"
+                rangeClassName="bg-white h-1 rounded-full"
                 aria-label="Volume control"
               />
             </div>
