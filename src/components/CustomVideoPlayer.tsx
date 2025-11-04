@@ -391,12 +391,12 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
             </Button>
             
             {/* Volume control with hover to expand */}
-            <div className="relative group">
+            <div className="relative group flex items-center">
               <Button variant="ghost" size="icon" onClick={handleMuteToggle} className="text-white hover:bg-white/20">
                 {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
               </Button>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-black/70 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-black/70 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto min-w-[100px]">
                 <Slider
                   value={[isMuted ? 0 : volume * 100]}
                   max={100}
