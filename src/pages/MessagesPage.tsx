@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from '@/components/SessionContextProvider';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Import useLocation
 import { toast } from 'sonner';
 import {
   getConversationsForUser,
@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 const MessagesPage = () => {
   const { user, isLoading: isSessionLoading } = useSession();
   const navigate = useNavigate();
+  const location = useLocation(); // Initialize useLocation
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -30,19 +31,32 @@ const MessagesPage = () => {
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
-  const fetchConversations = useCallback(async () => {
+  const fetchConversations = useCallback(async (initialConversationId?: string) => {
     if (!user) return;
     setIsLoadingConversations(true);
     try {
       const fetchedConversations = await getConversationsForUser(user.id);
       setConversations(fetchedConversations);
+
+      // If an initial conversation ID is provided, try to select it
+      if (initialConversationId) {
+        const convToSelect = fetchedConversations.find(conv => conv.id === initialConversationId);
+        if (convToSelect) {
+          setSelectedConversation(convToSelect);
+        } else {
+          toast.error('Could not find the specified conversation.');
+        }
+      } else if (fetchedConversations.length > 0 && !selectedConversation) {
+        // If no initial ID and no conversation is selected, select the first one
+        setSelectedConversation(fetchedConversations[0]);
+      }
     } catch (error: any) {
       toast.error(`Failed to load conversations: ${error.message}`);
       console.error('Error fetching conversations:', error);
     } finally {
       setIsLoadingConversations(false);
     }
-  }, [user]);
+  }, [user, selectedConversation]); // Added selectedConversation to dependencies
 
   const fetchMessages = useCallback(async (conversationId: string) => {
     setIsLoadingMessages(true);
@@ -64,9 +78,14 @@ const MessagesPage = () => {
       return;
     }
     if (user) {
-      fetchConversations();
+      const initialConversationId = location.state?.conversationId;
+      fetchConversations(initialConversationId);
+      // Clear the state after using it
+      if (initialConversationId) {
+        navigate(location.pathname, { replace: true, state: {} });
+      }
     }
-  }, [user, isSessionLoading, navigate, fetchConversations]);
+  }, [user, isSessionLoading, navigate, location.state, location.pathname, fetchConversations]);
 
   useEffect(() => {
     if (selectedConversation) {

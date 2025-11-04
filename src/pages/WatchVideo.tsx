@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory } from '@/lib/video-store';
+import { getVideoById, getProfileById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory, getOrCreateConversation } from '@/lib/video-store';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2, History } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2, History, MessageSquare } from 'lucide-react';
 import { useSession } from '@/components/SessionContextProvider';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -286,6 +286,39 @@ const WatchVideo = () => {
     }
   };
 
+  const handleInitiateMessage = async () => {
+    if (!user) {
+      toast.error('You must be logged in to send messages.');
+      return;
+    }
+    if (!uploaderProfile || !video) {
+      toast.error('Uploader profile not found.');
+      return;
+    }
+    if (user.id === uploaderProfile.id) {
+      toast.info("You cannot message yourself.");
+      return;
+    }
+
+    try {
+      const conversation = await getOrCreateConversation(user.id, uploaderProfile.id);
+      if (conversation) {
+        if (conversation.status === 'blocked') {
+          toast.error('This user does not accept messages.');
+        } else if (conversation.status === 'pending') {
+          toast.info('Message request sent! The creator needs to accept it.');
+          navigate('/messages', { state: { conversationId: conversation.id } });
+        } else { // 'accepted'
+          toast.success('Conversation opened!');
+          navigate('/messages', { state: { conversationId: conversation.id } });
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to initiate message.');
+      console.error('Error initiating message:', err);
+    }
+  };
+
   const renderComments = (commentList: CommentWithProfile[]) => (
     commentList.map((comment) => (
       <div key={comment.id} className="flex items-start space-x-3">
@@ -417,13 +450,19 @@ const WatchVideo = () => {
             <p className="text-sm text-muted-foreground">Uploader</p>
           </div>
           {!isOwner && user && uploaderProfile && (
-            <Button 
-              variant={isFollowingUploader ? "secondary" : "default"} 
-              onClick={handleFollowToggle} 
-              disabled={isSubscribing}
-            >
-              {isSubscribing ? '...' : isFollowingUploader ? <><Check className="mr-2 h-4 w-4" /> Joined Crew</> : <><Plus className="mr-2 h-4 w-4" /> Join Crew</>} {/* Changed text */}
-            </Button>
+            <>
+              <Button 
+                variant={isFollowingUploader ? "secondary" : "default"} 
+                onClick={handleFollowToggle} 
+                disabled={isSubscribing}
+                className="mr-2"
+              >
+                {isSubscribing ? '...' : isFollowingUploader ? <><Check className="mr-2 h-4 w-4" /> Joined Crew</> : <><Plus className="mr-2 h-4 w-4" /> Join Crew</>} {/* Changed text */}
+              </Button>
+              <Button variant="outline" onClick={handleInitiateMessage}>
+                <MessageSquare className="mr-2 h-4 w-4" /> Message
+              </Button>
+            </>
           )}
         </div>
 
