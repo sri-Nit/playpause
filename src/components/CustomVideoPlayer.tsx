@@ -300,11 +300,11 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
                   <>
                     <DropdownMenuLabel>Video Settings</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setSettingsView('speed')} className="flex justify-between items-center">
+                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setSettingsView('speed'); }} className="flex justify-between items-center">
                       <span>Playback Speed</span>
                       <span className="text-muted-foreground">{playbackSpeed === 1.0 ? 'Normal' : `${playbackSpeed}x`}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSettingsView('quality')} className="flex justify-between items-center">
+                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setSettingsView('quality'); }} className="flex justify-between items-center">
                       <span>Quality</span>
                       <span className="text-muted-foreground">{currentQuality}</span>
                     </DropdownMenuItem>
