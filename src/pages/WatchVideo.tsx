@@ -345,19 +345,29 @@ const WatchVideo = () => {
     <div className="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2">
         <VideoPlayer videoUrl={video.video_url} title={video.title} onProgressThresholdMet={handleVideoProgressThresholdMet} videoId={video.id} />
-        <h1 className="text-3xl font-bold mt-4 mb-2">{video.title}</h1>
-        <div className="flex items-center justify-between text-muted-foreground text-sm mb-4">
-          <div className="flex items-center space-x-4">
-            <p>{video.views} views</p>
-            <p>{new Date(video.created_at).toLocaleDateString()}</p>
-            {video.status === 'draft' && <Badge variant="secondary">Draft</Badge>}
+        
+        <div className="mt-4 mb-4">
+          <h1 className="text-3xl font-bold mb-1">{video.title}</h1>
+          <div className="flex justify-between items-center text-muted-foreground text-sm">
+            <p className="text-base">
+              {uploaderProfile ? `${uploaderProfile.first_name || ''} ${uploaderProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+            </p>
+            <div className="flex items-center space-x-2">
+              <p>{video.views} views</p>
+              <p>•</p>
+              <p>{new Date(video.created_at).toLocaleDateString()}</p>
+              {video.status === 'draft' && <Badge variant="secondary" className="ml-2">Draft</Badge>}
+            </div>
           </div>
+        </div>
+
+        <div className="flex items-center justify-between text-muted-foreground text-sm mb-4">
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="icon" onClick={handleLikeToggle} className={isLiked ? 'text-red-500' : ''}>
               <Heart className="h-5 w-5" fill={isLiked ? 'currentColor' : 'none'} />
             </Button>
             <span>{likes}</span>
-            <Button variant="ghost" size="icon" onClick={handleShareVideo}> {/* Share button */}
+            <Button variant="ghost" size="icon" onClick={handleShareVideo}>
               <Share2 className="h-5 w-5" />
             </Button>
             {isOwner && (
@@ -384,7 +394,7 @@ const WatchVideo = () => {
         </div>
         <p className="text-muted-foreground mb-6">{video.description}</p>
 
-        {/* Uploader Info */}
+        {/* Uploader Info (simplified as creator name is now above) */}
         <div className="flex items-center space-x-4 border-t border-b py-4 mb-6">
           <Avatar className="h-12 w-12">
             <AvatarImage src={uploaderProfile?.avatar_url || undefined} alt={uploaderProfile?.first_name || 'Uploader'} />
@@ -394,7 +404,7 @@ const WatchVideo = () => {
           </Avatar>
           <div className="flex-1">
             <Link to={`/profile/${uploaderProfile?.id}`} className="font-semibold hover:underline">
-              {uploaderProfile?.first_name} {uploaderProfile?.last_name}
+              {uploaderProfile ? `${uploaderProfile.first_name || ''} ${uploaderProfile.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
             </Link>
             <p className="text-sm text-muted-foreground">Uploader</p>
           </div>
