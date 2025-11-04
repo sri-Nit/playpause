@@ -396,7 +396,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
                   <span className="sr-only">Video Settings</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48">
+              <DropdownMenuContent className="w-48 bg-black/70 text-white border-none">
                 {settingsView === 'main' && (
                   <>
                     <DropdownMenuLabel>Video Settings</DropdownMenuLabel>
