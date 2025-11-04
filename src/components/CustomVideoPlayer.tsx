@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Settings, Play, Pause, Volume2, VolumeX, Maximize, Minimize, ChevronLeft, RotateCcw } from 'lucide-react';
+import { Settings, Play, Pause, Volume2, VolumeX, Maximize, Minimize, ChevronLeft, RotateCcw, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -183,6 +183,20 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     }
   };
 
+  const handleRewind = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 5);
+      showControlsTemporarily(); // Keep controls visible after seeking
+    }
+  };
+
+  const handleFastForward = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + 5);
+      showControlsTemporarily(); // Keep controls visible after seeking
+    }
+  };
+
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!videoRef.current) return;
 
@@ -199,9 +213,14 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       case 'F':
         handleFullScreenToggle();
         break;
-      // Add more shortcuts as needed (e.g., arrow keys for seeking)
+      case 'ArrowLeft': // Left arrow key
+        handleRewind();
+        break;
+      case 'ArrowRight': // Right arrow key
+        handleFastForward();
+        break;
     }
-  }, [handlePlayPause, handleMuteToggle, handleFullScreenToggle]);
+  }, [handlePlayPause, handleMuteToggle, handleFullScreenToggle, handleRewind, handleFastForward]);
 
   const handleDoubleClick = () => {
     handleFullScreenToggle();
@@ -304,9 +323,10 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       {/* Replay Overlay (only visible when video has ended) */}
       {videoEnded && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 transition-opacity duration-300">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 w-20 h-20" onClick={handleReplay}>
-            <RotateCcw className="h-12 w-12" />
-            <span className="sr-only">Replay</span>
+          <Button variant="ghost" className="text-white hover:bg-white/20 w-32 h-32 rounded-full flex flex-col items-center justify-center" onClick={handleReplay}>
+            <RotateCcw className="h-20 w-20 mb-2" />
+            <span className="text-lg font-semibold">Replay</span>
+            <span className="sr-only">Replay Video</span>
           </Button>
         </div>
       )}
@@ -332,9 +352,17 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center space-x-3">
+            <Button variant="ghost" size="icon" onClick={handleRewind} className="text-white hover:bg-white/20">
+              <ChevronsLeft className="h-5 w-5" />
+              <span className="sr-only">Rewind 5 seconds</span>
+            </Button>
             <Button variant="ghost" size="icon" onClick={handlePlayPause} className="text-white hover:bg-white/20">
               {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleFastForward} className="text-white hover:bg-white/20">
+              <ChevronsRight className="h-5 w-5" />
+              <span className="sr-only">Fast forward 5 seconds</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={handleMuteToggle} className="text-white hover:bg-white/20">
               {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
