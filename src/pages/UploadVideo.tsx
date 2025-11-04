@@ -19,6 +19,10 @@ const formSchema = z.object({
   videoFile: z.any().refine((file) => file?.length > 0, 'Video file is required.'),
   thumbnailFile: z.any().refine((file) => file?.length > 0, 'Thumbnail file is required.'),
   tags: z.string().optional(),
+  duration: z.preprocess(
+    (val) => Number(val),
+    z.number().int().min(1, { message: 'Duration must be at least 1 second.' }).optional(),
+  ),
 });
 
 const UploadVideo = () => {
@@ -32,6 +36,7 @@ const UploadVideo = () => {
       title: '',
       description: '',
       tags: '',
+      duration: undefined,
     },
   });
 
@@ -102,6 +107,7 @@ const UploadVideo = () => {
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
         tags: videoTags,
+        duration: values.duration || null, // Pass duration
       }, user.id, status); // Pass status here
 
       if (addedVideo) {
@@ -129,7 +135,7 @@ const UploadVideo = () => {
       <h1 className="text-3xl font-bold mb-6 text-center">Upload Your Video</h1>
       <div className="max-w-2xl mx-auto bg-card p-6 rounded-lg shadow-md">
         <Form {...form}>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-6"> {/* Prevent default form submission */}
+          <form onSubmit={form.handleSubmit((values) => onSubmit(values, 'published'))} className="space-y-6">
             <FormField
               control={form.control}
               name="title"
@@ -164,6 +170,19 @@ const UploadVideo = () => {
                   <FormLabel>Tags (comma-separated)</FormLabel>
                   <FormControl>
                     <Input placeholder="gaming, tutorial, vlog" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="duration"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Video Duration (seconds)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 300 for 5 minutes" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -206,7 +225,7 @@ const UploadVideo = () => {
               )}
             />
             <div className="flex space-x-4">
-              <Button type="button" className="w-full" onClick={form.handleSubmit((values) => onSubmit(values, 'published'))} disabled={isUploading}>
+              <Button type="submit" className="w-full" disabled={isUploading}>
                 {isUploading ? 'Uploading...' : 'Upload Video'}
               </Button>
               <Button type="button" variant="outline" className="w-full" onClick={form.handleSubmit((values) => onSubmit(values, 'draft'))} disabled={isUploading}>

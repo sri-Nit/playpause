@@ -11,6 +11,7 @@ export interface Video {
   views: number;
   tags: string[] | null;
   status: 'draft' | 'published'; // Added status column
+  duration: number | null; // Added duration column (in seconds)
 }
 
 export interface Profile {
@@ -115,6 +116,7 @@ export const addVideoMetadata = async (newVideo: Omit<Video, 'id' | 'created_at'
         thumbnail_url: newVideo.thumbnail_url,
         tags: newVideo.tags,
         status: status, // Include status
+        duration: newVideo.duration, // Include duration
       })
       .select()
       .single();
