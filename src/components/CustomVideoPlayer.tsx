@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Settings, Play, Pause, Volume2, VolumeX, Maximize, Minimize, ChevronLeft } from 'lucide-react';
+import { Settings, Play, Pause, Volume2, VolumeX, Maximize, Minimize, ChevronLeft, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +9,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuItem, // Added DropdownMenuItem for main options
+  DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Slider } from '@/components/ui/slider';
@@ -46,6 +46,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [currentQuality, setCurrentQuality] = useState('Auto'); // State for quality
   const [settingsView, setSettingsView] = useState<'main' | 'speed' | 'quality'>('main'); // New state for nested settings
+  const [videoEnded, setVideoEnded] = useState(false);
 
   const formatTime = (timeInSeconds: number) => {
     const minutes = Math.floor(timeInSeconds / 60);
@@ -61,6 +62,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         videoRef.current.play().catch(error => console.warn("Play prevented:", error));
       }
       setIsPlaying(!isPlaying);
+      setVideoEnded(false); // If playing, it's not ended
     }
   };
 
@@ -151,17 +153,58 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     setIsFullScreen(!!document.fullscreenElement);
   };
 
-  const handleMouseEnter = () => {
+  const hideControls = () => {
+    if (videoRef.current && isPlaying && !videoEnded) { // Only hide if playing and not ended
+      setShowControls(false);
+    }
+  };
+
+  const showControlsTemporarily = () => {
+    setShowControls(true);
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current);
     }
-    setShowControls(true);
+    controlsTimeoutRef.current = setTimeout(hideControls, 3000);
   };
 
-  const handleMouseLeave = () => {
-    controlsTimeoutRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, 3000); // Hide controls after 3 seconds
+  const handleVideoEnded = () => {
+    setIsPlaying(false);
+    setVideoEnded(true);
+    setShowControls(true); // Show controls when video ends
+  };
+
+  const handleReplay = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(error => console.warn("Replay prevented:", error));
+      setVideoEnded(false);
+      setIsPlaying(true);
+      setShowControls(false); // Hide controls after replay starts
+    }
+  };
+
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (!videoRef.current) return;
+
+    switch (event.key) {
+      case ' ': // Spacebar
+        event.preventDefault(); // Prevent scrolling
+        handlePlayPause();
+        break;
+      case 'm': // M key
+      case 'M':
+        handleMuteToggle();
+        break;
+      case 'f': // F key
+      case 'F':
+        handleFullScreenToggle();
+        break;
+      // Add more shortcuts as needed (e.g., arrow keys for seeking)
+    }
+  }, [handlePlayPause, handleMuteToggle, handleFullScreenToggle]);
+
+  const handleDoubleClick = () => {
+    handleFullScreenToggle();
   };
 
   useEffect(() => {
@@ -175,6 +218,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         console.warn("Autoplay prevented:", error);
       });
       setIsPlaying(true); // Assume playing if autoplay is attempted
+      setVideoEnded(false); // Reset video ended state on new video load
     }
   }, [videoId, videoUrl]);
 
@@ -193,6 +237,18 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     };
   }, []);
 
+  // Add and remove keyboard event listener
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('keydown', handleKeyDown);
+      container.tabIndex = 0; // Make the container focusable
+      return () => {
+        container.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [handleKeyDown]);
+
   // Clear timeout on unmount
   useEffect(() => {
     return () => {
@@ -205,10 +261,13 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full group bg-black rounded-md overflow-hidden"
-      onMouseEnter={handleMouseEnter}
-      onMouseMove={handleMouseEnter} // Keep controls visible on mouse movement
-      onMouseLeave={handleMouseLeave}
+      className="relative w-full group bg-black rounded-md overflow-hidden focus:outline-none"
+      onMouseMove={showControlsTemporarily}
+      onMouseLeave={() => {
+        if (isPlaying && !videoEnded) { // Only hide if playing and not ended
+          controlsTimeoutRef.current = setTimeout(hideControls, 3000);
+        }
+      }}
       onClick={handlePlayPause} // Toggle play/pause on video click
     >
       <AspectRatio ratio={16 / 9}>
@@ -221,7 +280,9 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
+          onPause={() => setShowControls(true)} // Show controls when paused
+          onEnded={handleVideoEnded}
+          onDoubleClick={handleDoubleClick}
           autoPlay
           muted // Start muted to increase autoplay success rate
           playsInline
@@ -230,8 +291,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         </video>
       </AspectRatio>
 
-      {/* Play/Pause Overlay (only visible when paused and controls are shown) */}
-      {(!isPlaying && showControls) && (
+      {/* Play/Pause Overlay (only visible when paused, not ended, and controls are shown) */}
+      {(!isPlaying && showControls && !videoEnded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity duration-300">
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 w-20 h-20" onClick={handlePlayPause}>
             <Play className="h-12 w-12" />
@@ -240,10 +301,20 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         </div>
       )}
 
+      {/* Replay Overlay (only visible when video has ended) */}
+      {videoEnded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 transition-opacity duration-300">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 w-20 h-20" onClick={handleReplay}>
+            <RotateCcw className="h-12 w-12" />
+            <span className="sr-only">Replay</span>
+          </Button>
+        </div>
+      )}
+
       {/* Custom Controls Overlay */}
       <div
         className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 transition-opacity duration-300 ${
-          showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
+          showControls || !isPlaying || videoEnded ? 'opacity-100' : 'opacity-0'
         }`}
       >
         {/* Progress Bar */}
@@ -256,6 +327,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
           thumbClassName="w-4 h-4 bg-primary rounded-full border-2 border-white"
           trackClassName="bg-gray-600 h-1 rounded-full"
           rangeClassName="bg-primary h-1 rounded-full"
+          aria-label="Video progress"
         />
 
         <div className="flex items-center justify-between text-white">
@@ -277,6 +349,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
               thumbClassName="w-3 h-3 bg-primary rounded-full border-2 border-white"
               trackClassName="bg-gray-600 h-1 rounded-full"
               rangeClassName="bg-primary h-1 rounded-full"
+              aria-label="Volume control"
             />
             <div className="text-sm font-mono">
               {formatTime(currentTime)} / {formatTime(duration)}
