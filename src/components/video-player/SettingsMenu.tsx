@@ -1,16 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Settings, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 
 interface SettingsMenuProps {
   playbackSpeed: number;
@@ -21,6 +11,14 @@ interface SettingsMenuProps {
   setSettingsView: (view: 'main' | 'speed' | 'quality') => void;
 }
 
+/**
+ * Crazy-styled in-place Settings menu (no portal, no external dropdown lib).
+ * - Always rendered as a descendant (absolute) so it stays inside fullscreen
+ * - Glassmorphism + scale/opacity animations
+ * - Keyboard accessible basics + click outside to close
+ *
+ * This intentionally DOES NOT create new folders or external dependencies.
+ */
 const playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 const qualityOptions = ['Auto', '1080p', '720p', '480p'];
 
@@ -32,136 +30,199 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
   settingsView,
   setSettingsView,
 }) => {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (!wrapperRef.current) return;
+      if (!wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setSettingsView('main');
+      }
+    }
+    if (open) document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open, setSettingsView]);
+
+  // Close on Escape
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        setSettingsView('main');
+      }
+    }
+    if (open) document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, setSettingsView]);
+
+  // Helper to toggle and ensure main view reset when closing
+  function toggleOpen(e?: React.MouseEvent) {
+    e?.stopPropagation();
+    setOpen((o) => {
+      const next = !o;
+      if (!next) setSettingsView('main');
+      return next;
+    });
+  }
+
+  // When parent controls view externally, keep menu open (common pattern).
+  useEffect(() => {
+    // if parent switches to subview, open menu automatically
+    if (settingsView !== 'main') setOpen(true);
+  }, [settingsView]);
+
   return (
-    // wrapper must be relative so the content can be absolutely positioned inside the player subtree
     <div
-      className="relative z-50"
-      onClick={(e) => e.stopPropagation()} // stop clicks bubbling to player (which may hide controls)
-      style={{ pointerEvents: 'auto' }}
+      ref={wrapperRef}
+      className="relative"
+      onClick={(e) => e.stopPropagation()} // ensure clicks inside don't bubble to player
     >
-      <DropdownMenu onOpenChange={(open) => !open && setSettingsView('main')}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20 focus-visible:ring-0"
-            onClick={(e) => { e.stopPropagation(); }}
-            aria-haspopup="true"
-            aria-expanded={settingsView !== 'main' ? true : undefined}
-          >
-            <Settings className="h-5 w-5" />
-            <span className="sr-only">Video Settings</span>
-          </Button>
-        </DropdownMenuTrigger>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-white hover:bg-white/20 focus-visible:ring-0 transition-transform active:scale-95"
+        onClick={toggleOpen}
+        aria-haspopup="true"
+        aria-expanded={open}
+      >
+        <Settings className="h-5 w-5" />
+        <span className="sr-only">Video Settings</span>
+      </Button>
 
-        {/* Render the content in-place (no portal/fixed). This keeps the menu inside the player DOM
-            so it remains visible and positioned correctly in fullscreen.
-            If your DropdownMenu supports a different prop name for disabling portal, use that name.
-        */}
-        <DropdownMenuContent
-          forceMount
-          portalled={false} /* ensure the content renders where the trigger is (Radix-style prop name) */
-          className="absolute right-0 bottom-12 w-48 bg-black/80 text-white border-none rounded-md z-50 p-1 shadow-lg backdrop-blur-sm"
-          side="top"
-          align="end"
-          sideOffset={8}
-          collisionPadding={8}
+      {/* Menu: absolutely positioned and animated. Keeps inside the player subtree. */}
+      {open && (
+        <div
+          role="menu"
+          aria-label="Video settings"
+          className="absolute right-0 bottom-12 w-56 bg-[rgba(10,10,10,0.6)] border border-white/8 rounded-lg p-2 shadow-2xl backdrop-blur-md text-white transform origin-bottom-right
+                     animate-scale-in"
+          style={{
+            // small inline style to ensure pointer events enabled
+            pointerEvents: 'auto',
+          }}
+          onClick={(e) => e.stopPropagation()}
         >
+          {/* Fancy arrow pointer */}
+          <div className="absolute right-4 -bottom-2 w-4 h-4 bg-[rgba(10,10,10,0.6)] rotate-45 border border-white/8"></div>
+
+          {/* MAIN VIEW */}
           {settingsView === 'main' && (
-            <>
-              <DropdownMenuLabel>Video Settings</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setSettingsView('speed');
-                }}
-                className="flex justify-between items-center"
-              >
-                <span>Playback Speed</span>
-                <span className="text-muted-foreground">
-                  {playbackSpeed === 1.0 ? 'Normal' : `${playbackSpeed}x`}
-                </span>
-              </DropdownMenuItem>
+            <div className="flex flex-col gap-1">
+              <div className="px-2 py-1 text-sm font-semibold tracking-wide">Video Settings</div>
 
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setSettingsView('quality');
-                }}
-                className="flex justify-between items-center"
+              <button
+                className="flex items-center justify-between px-2 py-2 rounded hover:bg-white/5 transition-colors"
+                onClick={() => setSettingsView('speed')}
               >
-                <span>Quality</span>
-                <span className="text-muted-foreground">{currentQuality}</span>
-              </DropdownMenuItem>
-            </>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Playback Speed</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {playbackSpeed === 1 ? 'Normal' : `${playbackSpeed}x`}
+                </div>
+              </button>
+
+              <button
+                className="flex items-center justify-between px-2 py-2 rounded hover:bg-white/5 transition-colors"
+                onClick={() => setSettingsView('quality')}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Quality</span>
+                </div>
+                <div className="text-xs text-muted-foreground">{currentQuality}</div>
+              </button>
+            </div>
           )}
 
+          {/* SPEED VIEW */}
           {settingsView === 'speed' && (
-            <>
-              <DropdownMenuLabel className="flex items-center">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center px-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 mr-2"
-                  onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }}
+                  className="h-7 w-7 mr-2 text-white/80"
+                  onClick={() => setSettingsView('main')}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                Playback Speed
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                value={playbackSpeed.toString()}
-                onValueChange={(value) => setPlaybackSpeed(parseFloat(value))}
-              >
-                {playbackSpeeds.map((speed) => (
-                  <DropdownMenuRadioItem
-                    key={speed}
-                    value={speed.toString()}
-                    onSelect={(e) => e.stopPropagation()}
+                <div className="text-sm font-semibold">Playback Speed</div>
+              </div>
+
+              <div className="px-1 py-1 flex flex-col gap-1">
+                {playbackSpeeds.map((s) => (
+                  <button
+                    key={s}
+                    className={`text-left px-2 py-2 rounded hover:bg-white/5 transition-colors ${
+                      s === playbackSpeed ? 'bg-white/6 ring-1 ring-white/10' : ''
+                    }`}
+                    onClick={() => {
+                      setPlaybackSpeed(s);
+                      setOpen(false);
+                      setSettingsView('main');
+                    }}
                   >
-                    {speed === 1.0 ? 'Normal' : `${speed}x`}
-                  </DropdownMenuRadioItem>
+                    {s === 1 ? 'Normal' : `${s}x`}
+                  </button>
                 ))}
-              </DropdownMenuRadioGroup>
-            </>
+              </div>
+            </div>
           )}
 
+          {/* QUALITY VIEW */}
           {settingsView === 'quality' && (
-            <>
-              <DropdownMenuLabel className="flex items-center">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center px-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 mr-2"
-                  onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }}
+                  className="h-7 w-7 mr-2 text-white/80"
+                  onClick={() => setSettingsView('main')}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                Quality
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup value={currentQuality} onValueChange={handleQualityChange}>
-                {qualityOptions.map((quality) => (
-                  <DropdownMenuRadioItem
-                    key={quality}
-                    value={quality}
-                    onSelect={(e) => e.stopPropagation()}
+                <div className="text-sm font-semibold">Quality</div>
+              </div>
+
+              <div className="px-1 py-1 flex flex-col gap-1">
+                {qualityOptions.map((q) => (
+                  <button
+                    key={q}
+                    className={`text-left px-2 py-2 rounded hover:bg-white/5 transition-colors ${
+                      q === currentQuality ? 'bg-white/6 ring-1 ring-white/10' : ''
+                    }`}
+                    onClick={() => {
+                      handleQualityChange(q);
+                      setOpen(false);
+                      setSettingsView('main');
+                    }}
                   >
-                    {quality}
-                  </DropdownMenuRadioItem>
+                    {q}
+                  </button>
                 ))}
-              </DropdownMenuRadioGroup>
-              <p className="text-xs text-muted-foreground p-2">
-                Note: Actual quality switching requires multiple video sources.
+              </div>
+
+              <p className="text-xs text-muted-foreground px-2 py-1">
+                Note: switching quality requires multiple sources / HLS.
               </p>
-            </>
+            </div>
           )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </div>
+      )}
+
+      <style>{`
+        /* tiny keyframe for scale-in effect */
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(.92); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        .animate-scale-in {
+          animation: scaleIn 140ms cubic-bezier(.2,.9,.3,1);
+        }
+      `}</style>
     </div>
   );
 };
