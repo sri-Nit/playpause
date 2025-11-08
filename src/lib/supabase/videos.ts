@@ -21,8 +21,9 @@ export const getVideos = async (): Promise<Video[]> => {
         size_bytes,
         created_at,
         updated_at,
-        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url)
-      `) // Using the explicit foreign key constraint name
+        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url),
+        video_stats!id(views)
+      `) // Using the explicit foreign key constraint name and adding video_stats
       .eq('status', 'published')
       .order('created_at', { ascending: false });
 
