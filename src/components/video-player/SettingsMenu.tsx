@@ -46,6 +46,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
             variant="ghost"
             size="icon"
             className="text-white hover:bg-white/20 focus-visible:ring-0"
+            onClick={(e) => e.stopPropagation()}
           >
             <Settings className="h-5 w-5" />
             <span className="sr-only">Video Settings</span>

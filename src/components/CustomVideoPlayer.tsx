@@ -163,7 +163,6 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
           controlsTimeoutRef.current = setTimeout(hideControls, 3000);
         }
       }}
-      onClick={togglePlayPause}
     >
       <AspectRatio ratio={16 / 9}>
         <video
@@ -183,6 +182,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
           autoPlay
           muted
           playsInline
+          onClick={togglePlayPause} {/* Moved onClick here */}
         >
           Your browser does not support the video tag.
         </video>

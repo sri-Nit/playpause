@@ -66,7 +66,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({
       {/* Play/Pause Overlay (only visible when paused, not ended, and controls are shown) */}
       {(!isPlaying && showControls && !videoEnded && !isBuffering) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity duration-300 z-30">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 w-20 h-20" onClick={togglePlayPause}>
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 w-20 h-20" onClick={(e) => { e.stopPropagation(); togglePlayPause(); }}>
             <Play className="h-12 w-12" />
             <span className="sr-only">Play</span>
           </Button>
@@ -76,7 +76,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({
       {/* Replay Overlay (only visible when video has ended) */}
       {videoEnded && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 transition-opacity duration-300 z-30">
-          <Button variant="ghost" className="text-white hover:bg-white/20 w-32 h-32 rounded-full flex flex-col items-center justify-center" onClick={replay}>
+          <Button variant="ghost" className="text-white hover:bg-white/20 w-32 h-32 rounded-full flex flex-col items-center justify-center" onClick={(e) => { e.stopPropagation(); replay(); }}>
             <RotateCcw className="h-20 w-20 mb-2" />
             <span className="text-lg font-semibold">Replay</span>
             <span className="sr-only">Replay Video</span>
@@ -102,22 +102,22 @@ const VideoControls: React.FC<VideoControlsProps> = ({
 
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="icon" onClick={() => seek(-5)} className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); seek(-5); }} className="text-white hover:bg-white/20">
               <ChevronsLeft className="h-5 w-5" />
               <span className="sr-only">Rewind 5 seconds</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={togglePlayPause} className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); togglePlayPause(); }} className="text-white hover:bg-white/20">
               {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => seek(5)} className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); seek(5); }} className="text-white hover:bg-white/20">
               <ChevronsRight className="h-5 w-5" />
               <span className="sr-only">Fast forward 5 seconds</span>
             </Button>
             
             {/* Volume control with always-visible slider */}
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white hover:bg-white/20">
+              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:bg-white/20">
                 {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
               </Button>
@@ -150,7 +150,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({
               settingsView={settingsView}
               setSettingsView={setSettingsView}
             />
-            <Button variant="ghost" size="icon" onClick={handleFullScreenToggle} className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleFullScreenToggle(); }} className="text-white hover:bg-white/20">
               {isFullScreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
               <span className="sr-only">{isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
             </Button>
