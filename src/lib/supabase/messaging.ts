@@ -17,7 +17,7 @@ export const getOrCreateConversation = async (
     // Try to find an existing conversation
     const { data: existingConversation, error: fetchError } = await supabase
       .from('conversations')
-      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
+      .select('*, user1_id(id, first_name, last_name, avatar_url), user2_id(id, first_name, last_name, avatar_url)')
       .eq('user1_id', user1_id)
       .eq('user2_id', user2_id)
       .single();
@@ -50,7 +50,7 @@ export const getOrCreateConversation = async (
     const { data: newConversation, error: insertError } = await supabase
       .from('conversations')
       .insert({ user1_id, user2_id, status: conversationStatus })
-      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
+      .select('*, user1_id(id, first_name, last_name, avatar_url), user2_id(id, first_name, last_name, avatar_url)')
       .single();
 
     if (insertError) {
@@ -71,7 +71,7 @@ export const getConversationsForUser = async (userId: string): Promise<Conversat
   try {
     const { data, error } = await supabase
       .from('conversations')
-      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
+      .select('*, user1_id(id, first_name, last_name, avatar_url), user2_id(id, first_name, last_name, avatar_url)')
       .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
       .order('last_message_at', { ascending: false });
 
@@ -150,7 +150,7 @@ export const updateConversationStatus = async (
       .from('conversations')
       .update({ status })
       .eq('id', conversationId)
-      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
+      .select('*, user1_id(id, first_name, last_name, avatar_url), user2_id(id, first_name, last_name, avatar_url)')
       .single();
 
     if (error) {
