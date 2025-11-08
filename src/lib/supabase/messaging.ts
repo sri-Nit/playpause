@@ -14,10 +14,10 @@ export const getOrCreateConversation = async (
     // Ensure user1_id is always the smaller UUID for consistent lookup
     const [user1_id, user2_id] = [currentUserId, recipientId].sort();
 
-    // Try to find an existing conversation
+    // Try to find an an existing conversation
     const { data: existingConversation, error: fetchError } = await supabase
       .from('conversations')
-      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
+      .select('*, user1:fk_user1_profile(id, username, display_name), user2:fk_user2_profile(id, username, display_name)') // Updated profile fields
       .eq('user1_id', user1_id)
       .eq('user2_id', user2_id)
       .single();
@@ -31,26 +31,15 @@ export const getOrCreateConversation = async (
     }
 
     // If no existing conversation, create a new one
-    const recipientProfile = await getProfileById(recipientId); // Corrected call
-    if (!recipientProfile) {
-      console.error(`Recipient profile not found for ID: ${recipientId}`);
-      throw new Error('Recipient profile not found.');
-    }
-
-    let conversationStatus: 'pending' | 'accepted' | 'rejected' | 'blocked' = 'accepted';
-
-    // Determine initial status based on recipient's message_preference
-    if (recipientProfile.message_preference === 'blocked') {
-      throw new Error('This user does not accept messages.');
-    } else if (recipientProfile.message_preference === 'requests') {
-      conversationStatus = 'pending';
-    }
-    // If 'open', status remains 'accepted'
+    // NOTE: message_preference is no longer in the profiles table.
+    // For now, new conversations will default to 'accepted'.
+    // If message preference logic is desired, a new column would need to be added to profiles.
+    const conversationStatus: 'pending' | 'accepted' | 'rejected' | 'blocked' = 'accepted';
 
     const { data: newConversation, error: insertError } = await supabase
       .from('conversations')
       .insert({ user1_id, user2_id, status: conversationStatus })
-      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
+      .select('*, user1:fk_user1_profile(id, username, display_name), user2:fk_user2_profile(id, username, display_name)') // Updated profile fields
       .single();
 
     if (insertError) {
@@ -71,7 +60,7 @@ export const getConversationsForUser = async (userId: string): Promise<Conversat
   try {
     const { data, error } = await supabase
       .from('conversations')
-      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
+      .select('*, user1:fk_user1_profile(id, username, display_name), user2:fk_user2_profile(id, username, display_name)') // Updated profile fields
       .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
       .order('last_message_at', { ascending: false });
 
@@ -92,7 +81,7 @@ export const getMessagesInConversation = async (conversationId: string): Promise
   try {
     const { data, error } = await supabase
       .from('messages')
-      .select('*, sender:sender_id(id, first_name, last_name, avatar_url)')
+      .select('*, sender:sender_id(id, username, display_name)') // Updated profile fields
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
 
@@ -118,7 +107,7 @@ export const sendMessage = async (
     const { data, error } = await supabase
       .from('messages')
       .insert({ conversation_id: conversationId, sender_id: senderId, text })
-      .select('*, sender:sender_id(id, first_name, last_name, avatar_url)')
+      .select('*, sender:sender_id(id, username, display_name)') // Updated profile fields
       .single();
 
     if (error) {
@@ -150,7 +139,7 @@ export const updateConversationStatus = async (
       .from('conversations')
       .update({ status })
       .eq('id', conversationId)
-      .select('*, user1:fk_user1_profile(id, first_name, last_name, avatar_url), user2:fk_user2_profile(id, first_name, last_name, avatar_url)')
+      .select('*, user1:fk_user1_profile(id, username, display_name), user2:fk_user2_profile(id, username, display_name)') // Updated profile fields
       .single();
 
     if (error) {
