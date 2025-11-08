@@ -43,7 +43,7 @@ const WatchVideo = () => {
   const handleVideoProgressThresholdMet = useCallback(async (videoId: string) => {
     const viewKey = `video_viewed_50_${videoId}`;
     if (!sessionStorage.getItem(viewKey)) {
-      if (video?.status === 'published') {
+      if (video?.status === 'published') { // Only increment views for published videos
         await incrementVideoView(videoId);
       }
       if (user) {
@@ -64,9 +64,22 @@ const WatchVideo = () => {
     try {
       const fetchedVideo = await getVideoById(id);
       if (fetchedVideo) {
+        // Handle different video statuses
         if (fetchedVideo.status === 'draft' && (!user || user.id !== fetchedVideo.user_id)) {
           setError('This video is a draft and not publicly available.');
           setVideo(null);
+          setIsLoading(false);
+          return;
+        }
+        if (fetchedVideo.status === 'processing') {
+          setError('This video is currently being processed. Please check back later.');
+          setVideo(fetchedVideo); // Still set video to show title/thumbnail
+          setIsLoading(false);
+          return;
+        }
+        if (fetchedVideo.status === 'blocked') {
+          setError('This video has been blocked due to content policy violations.');
+          setVideo(fetchedVideo); // Still set video to show title/thumbnail
           setIsLoading(false);
           return;
         }
@@ -359,6 +372,43 @@ const WatchVideo = () => {
   }
 
   if (error) {
+    // If there's an error, and we have video data (e.g., for processing/blocked status), display it
+    if (video && (video.status === 'processing' || video.status === 'blocked')) {
+      const isOwner = user && user.id === video.user_id;
+      return (
+        <div className="container mx-auto p-4 max-w-4xl text-center">
+          <div className="bg-card p-8 rounded-lg shadow-lg">
+            <h1 className="text-4xl font-bold mb-4">{video.title}</h1>
+            {video.thumbnail_url && (
+              <img
+                src={video.thumbnail_url}
+                alt={video.title}
+                className="mx-auto mb-6 rounded-lg object-cover w-full max-w-md"
+              />
+            )}
+            <p className="text-xl text-muted-foreground mb-6">
+              {video.status === 'processing'
+                ? 'This video is currently being processed. Please check back later.'
+                : 'This video has been blocked due to content policy violations.'}
+            </p>
+            {isOwner && video.status === 'processing' && (
+              <p className="text-sm text-muted-foreground">
+                You will be notified when your video is ready.
+              </p>
+            )}
+            {isOwner && video.status === 'blocked' && (
+              <p className="text-sm text-muted-foreground">
+                Please review our content guidelines or contact support for more information.
+              </p>
+            )}
+            <Button onClick={() => navigate('/')} className="mt-6">
+              Return to Home
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    // For other errors (e.g., video not found, network issues)
     return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">{error}</div>;
   }
 

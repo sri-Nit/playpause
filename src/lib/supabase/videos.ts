@@ -6,7 +6,7 @@ export const getVideos = async (): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .eq('status', 'published')
       .order('created_at', { ascending: false });
 
@@ -21,13 +21,13 @@ export const getVideos = async (): Promise<Video[]> => {
   }
 };
 
-// Function to get all videos for a specific creator (including drafts)
-export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
+// Function to get all videos for a specific creator (including drafts and processing)
+export const getCreatorVideos = async (ownerId: string): Promise<Video[]> => { // Changed userId to ownerId
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
-      .eq('user_id', userId)
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
+      .eq('owner_id', ownerId) // Changed user_id to owner_id
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -42,21 +42,30 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
 };
 
 // Function to add a new video to Supabase (metadata only, files handled separately)
-export const addVideoMetadata = async (newVideo: Omit<Video, 'id' | 'created_at' | 'user_id' | 'views' | 'status' | 'profiles'>, userId: string, status: 'draft' | 'published' = 'published'): Promise<Video | null> => {
+export const addVideoMetadata = async (
+  newVideo: Omit<Video, 'id' | 'created_at' | 'owner_id' | 'views' | 'status' | 'profiles' | 'visibility' | 'raw_path' | 'hls_master_path' | 'thumbnail_path' | 'duration_seconds' | 'size_bytes' | 'updated_at'> & {
+    video_url: string; // Add video_url for upload
+    thumbnail_url: string; // Add thumbnail_url for upload
+    duration: number | null; // Add duration for upload
+  },
+  ownerId: string, // Changed userId to ownerId
+  initialStatus: 'draft' | 'published' | 'processing' = 'processing' // Default to 'processing'
+): Promise<Video | null> => {
   try {
     const { data, error } = await supabase
       .from('videos')
       .insert({
-        user_id: userId,
+        owner_id: ownerId, // Changed user_id to owner_id
         title: newVideo.title,
         description: newVideo.description,
-        video_url: newVideo.video_url,
-        thumbnail_url: newVideo.thumbnail_url,
+        raw_path: newVideo.video_url, // Map video_url to raw_path
+        thumbnail_path: newVideo.thumbnail_url, // Map thumbnail_url to thumbnail_path
         tags: newVideo.tags,
-        status: status,
-        duration: newVideo.duration,
+        status: initialStatus, // Use the provided initialStatus
+        duration_seconds: newVideo.duration, // Map duration to duration_seconds
+        visibility: 'public', // Default visibility to public for new uploads
       })
-      .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .single();
 
     if (error) {
@@ -75,7 +84,7 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .eq('id', id)
       .single();
 
@@ -91,13 +100,13 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
 };
 
 // Function to update video metadata
-export const updateVideoMetadata = async (videoId: string, updatedFields: Partial<Omit<Video, 'id' | 'user_id' | 'created_at' | 'views' | 'profiles'>>): Promise<Video | null> => {
+export const updateVideoMetadata = async (videoId: string, updatedFields: Partial<Omit<Video, 'id' | 'owner_id' | 'created_at' | 'profiles' | 'views'>>): Promise<Video | null> => { // Removed views
   try {
     const { data, error } = await supabase
       .from('videos')
       .update(updatedFields)
       .eq('id', videoId)
-      .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .single();
 
     if (error) {
@@ -112,13 +121,13 @@ export const updateVideoMetadata = async (videoId: string, updatedFields: Partia
 };
 
 // Function to update video status
-export const updateVideoStatus = async (videoId: string, status: 'draft' | 'published'): Promise<Video | null> => {
+export const updateVideoStatus = async (videoId: string, status: 'draft' | 'published' | 'processing' | 'blocked' | 'ready' | 'failed'): Promise<Video | null> => { // Added ready, failed
   try {
     const { data, error } = await supabase
       .from('videos')
       .update({ status: status })
       .eq('id', videoId)
-      .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .single();
 
     if (error) {
@@ -155,7 +164,7 @@ export const searchVideos = async (query: string): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .eq('status', 'published')
       .or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
       .order('created_at', { ascending: false });

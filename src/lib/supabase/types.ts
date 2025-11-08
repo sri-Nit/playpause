@@ -1,26 +1,44 @@
 import { Profile as SupabaseProfile } from '@supabase/supabase-js';
 
-export interface Video {
-  id: string;
-  user_id: string;
-  title: string;
-  description: string | null;
-  video_url: string;
-  thumbnail_url: string;
-  created_at: string;
-  views: number;
-  tags: string[] | null;
-  status: 'draft' | 'published';
-  duration: number | null;
-  profiles?: Profile; // Added to include creator's profile directly with the video
-}
-
 export interface Profile {
   id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-  message_preference: 'open' | 'requests' | 'blocked';
+  username: string | null;
+  display_name: string | null;
+  created_at: string;
+}
+
+export interface Channel {
+  id: string;
+  owner_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface Video {
+  id: string;
+  owner_id: string; // Changed from user_id to owner_id
+  channel_id: string | null;
+  title: string;
+  description: string | null;
+  tags: string[] | null;
+  visibility: 'public' | 'unlisted' | 'private';
+  status: 'processing' | 'ready' | 'failed' | 'blocked' | 'draft'; // Updated status values
+  raw_path: string | null;
+  hls_master_path: string | null;
+  thumbnail_path: string | null;
+  duration_seconds: number | null;
+  size_bytes: number | null;
+  created_at: string;
+  updated_at: string;
+  profiles?: Profile; // Joined profile data
+}
+
+export interface VideoStats {
+  video_id: string;
+  views: number;
+  likes: number;
+  comments_count: number;
+  last_viewed_at: string | null;
 }
 
 export interface Like {
@@ -36,8 +54,8 @@ export interface Comment {
   user_id: string;
   text: string;
   created_at: string;
-  profiles: Profile;
-  parent_comment_id: string | null;
+  parent_comment_id: string | null; // Added parent_comment_id back
+  profiles?: Profile; // Joined profile data
 }
 
 export interface Subscription {
@@ -61,7 +79,8 @@ export interface WatchHistory {
   user_id: string;
   video_id: string;
   watched_at: string;
-  videos: Video;
+  watch_seconds: number | null; // Added watch_seconds
+  videos?: Video; // Joined video data
 }
 
 export interface Conversation {
@@ -71,8 +90,8 @@ export interface Conversation {
   status: 'pending' | 'accepted' | 'rejected' | 'blocked';
   created_at: string;
   last_message_at: string;
-  user1: Profile;
-  user2: Profile;
+  user1?: Profile; // Joined profile data for user1
+  user2?: Profile; // Joined profile data for user2
 }
 
 export interface Message {
@@ -82,5 +101,5 @@ export interface Message {
   text: string;
   created_at: string;
   is_read: boolean;
-  sender: Profile;
+  sender?: Profile; // Joined profile data for sender
 }
