@@ -89,6 +89,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({
         className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 transition-opacity duration-300 ${
           showControls || !isPlaying || videoEnded ? 'opacity-100' : 'opacity-0'
         } z-50`}
+        onClick={(e) => e.stopPropagation()} // prevent clicks on control bar from bubbling to player
       >
         {/* Progress Bar */}
         <div onClick={(e) => e.stopPropagation()}> {/* Stop propagation for progress slider */}
@@ -144,14 +145,16 @@ const VideoControls: React.FC<VideoControlsProps> = ({
                 <VolumeX className="h-3 w-3 mr-1" /> Muted
               </div>
             )}
-            <SettingsMenu
-              playbackSpeed={playbackSpeed}
-              setPlaybackSpeed={setPlaybackSpeed}
-              currentQuality={currentQuality}
-              handleQualityChange={handleQualityChange}
-              settingsView={settingsView}
-              setSettingsView={setSettingsView}
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <SettingsMenu
+                playbackSpeed={playbackSpeed}
+                setPlaybackSpeed={setPlaybackSpeed}
+                currentQuality={currentQuality}
+                handleQualityChange={handleQualityChange}
+                settingsView={settingsView}
+                setSettingsView={setSettingsView}
+              />
+            </div>
             <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleFullScreenToggle(); }} className="text-white hover:bg-white/20">
               {isFullScreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
               <span className="sr-only">{isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
