@@ -1,208 +1,284 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Settings, ChevronLeft } from 'lucide-react';
+import React from 'react';
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  Minimize,
+  ChevronsLeft,
+  ChevronsRight,
+  RotateCcw,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CustomSlider } from '@/components/CustomSlider';
+import SettingsMenu from './SettingsMenu';
 
-interface SettingsMenuProps {
+interface VideoControlsProps {
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isMuted: boolean;
   playbackSpeed: number;
+  isFullScreen: boolean;
+  showMutedIndicator: boolean;
+  videoEnded: boolean;
+  isBuffering: boolean;
+  togglePlayPause: () => void;
+  handleProgressChange: (value: number[]) => void;
+  setVolume: (newVolume: number) => void;
+  toggleMute: () => void;
   setPlaybackSpeed: (speed: number) => void;
+  seek: (seconds: number) => void;
+  replay: () => void;
+  handleFullScreenToggle: () => void;
   currentQuality: string;
   handleQualityChange: (quality: string) => void;
   settingsView: 'main' | 'speed' | 'quality';
   setSettingsView: (view: 'main' | 'speed' | 'quality') => void;
+  showControls: boolean;
 }
 
 /**
- * In-place SettingsMenu (cute + compact).
- * - Renders as a child (no portal) so it stays inside fullscreen
- * - click outside, Escape to close
- * - small, rounded, glass/blur style to match the controls
+ * Updated VideoControls:
+ * - Single gradient progress line (removed duplicate "two lines" look)
+ * - Accessible invisible slider overlay for scrubbing (keeps keyboard + screen-reader support)
+ * - Restyled rewind/forward buttons to be round, prominent, and consistent
+ * - Improved volume rocker visuals (rounded pill track, cleaner spacing)
+ *
+ * Drop this file in place of your existing VideoControls.tsx
  */
-const playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
-const qualityOptions = ['Auto', '1080p', '720p', '480p'];
-
-const SettingsMenu: React.FC<SettingsMenuProps> = ({
+const VideoControls: React.FC<VideoControlsProps> = ({
+  isPlaying,
+  currentTime,
+  duration,
+  volume,
+  isMuted,
   playbackSpeed,
+  isFullScreen,
+  showMutedIndicator,
+  videoEnded,
+  isBuffering,
+  togglePlayPause,
+  handleProgressChange,
+  setVolume,
+  toggleMute,
   setPlaybackSpeed,
+  seek,
+  replay,
+  handleFullScreenToggle,
   currentQuality,
   handleQualityChange,
   settingsView,
   setSettingsView,
+  showControls,
 }) => {
-  const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const formatTime = (timeInSeconds: number) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = Math.floor(timeInSeconds % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
 
-  useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      if (!wrapperRef.current) return;
-      if (!wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setSettingsView('main');
-      }
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        setSettingsView('main');
-      }
-    }
-    if (open) {
-      document.addEventListener('mousedown', onDoc);
-      document.addEventListener('keydown', onKey);
-    }
-    return () => {
-      document.removeEventListener('mousedown', onDoc);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, setSettingsView]);
-
-  // If parent switches to a sub-view, ensure menu opens
-  useEffect(() => {
-    if (settingsView !== 'main') setOpen(true);
-  }, [settingsView]);
-
-  function toggleOpen(e?: React.MouseEvent) {
-    e?.stopPropagation();
-    setOpen((o) => {
-      const next = !o;
-      if (!next) setSettingsView('main');
-      return next;
-    });
-  }
+  const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div
-      ref={wrapperRef}
-      className="relative"
-      onClick={(e) => e.stopPropagation()}
-      aria-hidden={false}
-    >
-      <Button
-        variant="ghost"
-        size="icon"
-        className="text-white hover:bg-white/10 focus-visible:ring-0 transition-transform active:scale-95"
-        onClick={toggleOpen}
-        aria-haspopup="true"
-        aria-expanded={open}
-      >
-        <Settings className="h-5 w-5" />
-        <span className="sr-only">Video Settings</span>
-      </Button>
-
-      {open && (
+    <>
+      {/* Play overlay */}
+      {(!isPlaying && showControls && !videoEnded && !isBuffering) && (
         <div
-          role="menu"
-          aria-label="Video settings"
-          className="absolute right-0 bottom-12 w-48 bg-[rgba(20,20,20,0.7)] border border-white/6 rounded-lg p-2 shadow-2xl backdrop-blur-md text-white transform origin-bottom-right"
+          className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity duration-300 z-30"
           onClick={(e) => e.stopPropagation()}
-          style={{ pointerEvents: 'auto' }}
         >
-          <div className="absolute right-4 -bottom-2 w-3 h-3 bg-[rgba(20,20,20,0.7)] rotate-45 border border-white/6" />
-
-          {/* MAIN VIEW */}
-          {settingsView === 'main' && (
-            <div className="flex flex-col gap-1">
-              <div className="px-2 py-1 text-sm font-semibold tracking-wide">Video Settings</div>
-
-              <button
-                className="flex items-center justify-between px-2 py-2 rounded hover:bg-white/5 transition-colors"
-                onClick={() => setSettingsView('speed')}
-              >
-                <span className="text-sm">Playback Speed</span>
-                <span className="text-xs text-muted-foreground">
-                  {playbackSpeed === 1 ? 'Normal' : `${playbackSpeed}x`}
-                </span>
-              </button>
-
-              <button
-                className="flex items-center justify-between px-2 py-2 rounded hover:bg-white/5 transition-colors"
-                onClick={() => setSettingsView('quality')}
-              >
-                <span className="text-sm">Quality</span>
-                <span className="text-xs text-muted-foreground">{currentQuality}</span>
-              </button>
-            </div>
-          )}
-
-          {/* SPEED VIEW */}
-          {settingsView === 'speed' && (
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center px-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 mr-2 text-white/80"
-                  onClick={() => setSettingsView('main')}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="text-sm font-semibold">Playback Speed</div>
-              </div>
-
-              <div className="px-1 py-1 flex flex-col gap-1">
-                {playbackSpeeds.map((s) => (
-                  <button
-                    key={s}
-                    className={`text-left px-2 py-2 rounded hover:bg-white/5 transition-colors ${
-                      s === playbackSpeed ? 'bg-white/6 ring-1 ring-white/10' : ''
-                    }`}
-                    onClick={() => {
-                      setPlaybackSpeed(s);
-                      setOpen(false);
-                      setSettingsView('main');
-                    }}
-                  >
-                    {s === 1 ? 'Normal' : `${s}x`}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* QUALITY VIEW */}
-          {settingsView === 'quality' && (
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center px-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 mr-2 text-white/80"
-                  onClick={() => setSettingsView('main')}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="text-sm font-semibold">Quality</div>
-              </div>
-
-              <div className="px-1 py-1 flex flex-col gap-1">
-                {qualityOptions.map((q) => (
-                  <button
-                    key={q}
-                    className={`text-left px-2 py-2 rounded hover:bg-white/5 transition-colors ${
-                      q === currentQuality ? 'bg-white/6 ring-1 ring-white/10' : ''
-                    }`}
-                    onClick={() => {
-                      handleQualityChange(q);
-                      setOpen(false);
-                      setSettingsView('main');
-                    }}
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-
-              <p className="text-xs text-muted-foreground px-2 py-1">
-                Note: switching quality requires multiple sources / HLS.
-              </p>
-            </div>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20 w-20 h-20 rounded-full backdrop-blur-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlayPause();
+            }}
+          >
+            <Play className="h-12 w-12" />
+            <span className="sr-only">Play</span>
+          </Button>
         </div>
       )}
+
+      {/* Replay overlay */}
+      {videoEnded && (
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-black/70 transition-opacity duration-300 z-40"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button
+            variant="ghost"
+            className="text-white hover:bg-white/20 w-32 h-32 rounded-full flex flex-col items-center justify-center backdrop-blur-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              replay();
+            }}
+          >
+            <RotateCcw className="h-20 w-20 mb-2" />
+            <span className="text-lg font-semibold">Replay</span>
+            <span className="sr-only">Replay Video</span>
+          </Button>
+        </div>
+      )}
+
+      {/* Controls bar */}
+      <div
+        className={`absolute inset-x-0 bottom-0 p-4 transition-opacity duration-300 ${
+          showControls || !isPlaying || videoEnded ? 'opacity-100' : 'opacity-0'
+        } z-50`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Single gradient progress bar with invisible accessible slider on top */}
+        <div
+          className="relative w-full mb-3 h-4 select-none"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Visible gradient track */}
+          <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-150"
+              style={{
+                width: `${progressPct}%`,
+                background:
+                  'linear-gradient(90deg, #7c3aed 0%, #ec4899 50%, #f59e0b 100%)',
+              }}
+            />
+          </div>
+
+          {/* Visible scrub handle mark for visual cue (not functional by itself) */}
+          <div
+            className="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-lg"
+            style={{ right: `${100 - progressPct}%`, marginRight: '-8px' }}
+            aria-hidden
+          />
+
+          {/* Invisible (but keyboard+pointer accessible) slider overlay */}
+          <div className="absolute inset-0">
+            <CustomSlider
+              value={[currentTime]}
+              max={duration}
+              step={0.1}
+              onValueChange={handleProgressChange}
+              className="w-full h-full opacity-0" // visually hidden but still interactive
+              aria-label="Video progress"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-white">
+          <div className="flex items-center space-x-3">
+            {/* Rewind button - bigger, rounded, with subtle bg */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => { e.stopPropagation(); seek(-5); }}
+              className="text-white bg-white/2 hover:bg-white/6 w-10 h-10 rounded-full flex items-center justify-center transition"
+            >
+              <ChevronsLeft className="h-5 w-5" />
+              <span className="sr-only">Rewind 5 seconds</span>
+            </Button>
+
+            {/* Play/Pause - more prominent circular control */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => { e.stopPropagation(); togglePlayPause(); }}
+              className="text-white hover:bg-white/10 w-10 h-10 rounded-full flex items-center justify-center"
+              aria-pressed={isPlaying}
+            >
+              {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+              <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
+            </Button>
+
+            {/* Fast-forward button - symmetric to rewind */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => { e.stopPropagation(); seek(5); }}
+              className="text-white bg-white/2 hover:bg-white/6 w-10 h-10 rounded-full flex items-center justify-center transition"
+            >
+              <ChevronsRight className="h-5 w-5" />
+              <span className="sr-only">Fast forward 5 seconds</span>
+            </Button>
+
+            {/* Volume rocker */}
+            <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                className="text-white hover:bg-white/6 w-9 h-9 rounded-full flex items-center justify-center"
+                aria-pressed={isMuted}
+              >
+                {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
+              </Button>
+
+              {/* Styled pill surrounding the slider for better UX */}
+              <div className="w-28 bg-white/3 rounded-full px-2 py-1 flex items-center">
+                <div className="flex-1">
+                  <CustomSlider
+                    value={[isMuted ? 0 : volume * 100]}
+                    max={100}
+                    step={1}
+                    onValueChange={(value) => setVolume(value[0] / 100)}
+                    className="w-full h-5" // depends on your CustomSlider implementation; adjust if needed
+                    aria-label="Volume control"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="text-sm font-mono ml-2">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {showMutedIndicator && isPlaying && !videoEnded && (
+              <div className="flex items-center text-xs text-white bg-gray-700/70 px-2 py-1 rounded-md">
+                <VolumeX className="h-3 w-3 mr-1" /> Muted
+              </div>
+            )}
+
+            {/* SettingsMenu is in-place so it will remain visible in fullscreen */}
+            <div onClick={(e) => e.stopPropagation()}>
+              <SettingsMenu
+                playbackSpeed={playbackSpeed}
+                setPlaybackSpeed={setPlaybackSpeed}
+                currentQuality={currentQuality}
+                handleQualityChange={handleQualityChange}
+                settingsView={settingsView}
+                setSettingsView={setSettingsView}
+              />
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => { e.stopPropagation(); handleFullScreenToggle(); }}
+              className="text-white hover:bg-white/10 w-9 h-9 rounded-full"
+            >
+              {isFullScreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+              <span className="sr-only">{isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <style>{`
-        .text-muted-foreground { color: rgba(255,255,255,0.78); }
+        /* small helper styles to ensure consistent look for the custom parts */
+        .bg-white\\/2 { background-color: rgba(255,255,255,0.02); }
+        .bg-white\\/3 { background-color: rgba(255,255,255,0.03); }
+        .bg-white\\/6 { background-color: rgba(255,255,255,0.06); }
       `}</style>
-    </div>
+    </>
   );
 };
 
-export default SettingsMenu;
+export default VideoControls;
