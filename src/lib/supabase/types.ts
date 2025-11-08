@@ -5,6 +5,11 @@ export interface Profile {
   username: string | null;
   display_name: string | null;
   created_at: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  message_preference: 'open' | 'requests' | 'blocked';
+  updated_at: string | null;
 }
 
 export interface Channel {
@@ -16,21 +21,22 @@ export interface Channel {
 
 export interface Video {
   id: string;
-  owner_id: string;
+  user_id: string; // Corrected from owner_id to user_id
   channel_id: string | null;
   title: string;
   description: string | null;
   tags: string[] | null;
   visibility: 'public' | 'unlisted' | 'private';
   status: 'processing' | 'ready' | 'failed' | 'blocked' | 'draft';
-  raw_path: string | null;
+  video_url: string | null; // Corrected from raw_path
   hls_master_path: string | null;
-  thumbnail_path: string | null;
+  thumbnail_url: string | null; // Corrected from thumbnail_path
   duration_seconds: number | null;
   size_bytes: number | null;
   created_at: string;
   updated_at: string;
-  owner_profile?: Profile; // Added to include owner's profile directly with the video
+  profiles?: Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>; // Embedded profile
+  video_stats?: { views: number }[]; // Embedded video stats for views
   channel?: Channel; // Added to include channel data
 }
 
@@ -55,7 +61,8 @@ export interface Comment {
   user_id: string;
   text: string;
   created_at: string;
-  user_profile?: Profile; // Updated to reflect new Profile structure
+  parent_comment_id: string | null; // Added parent_comment_id
+  profiles?: Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>; // Embedded profile
 }
 
 export interface Subscription {
@@ -80,7 +87,7 @@ export interface WatchHistory {
   video_id: string;
   watched_at: string;
   watch_seconds: number | null; // Added watch_seconds
-  video?: Video; // Updated to be optional and named 'video'
+  videos: Video; // Changed from video? to videos to match the select query
 }
 
 export interface Conversation {
@@ -90,8 +97,8 @@ export interface Conversation {
   status: 'pending' | 'accepted' | 'rejected' | 'blocked';
   created_at: string;
   last_message_at: string;
-  user1_profile?: Profile; // Updated to reflect new Profile structure
-  user2_profile?: Profile; // Updated to reflect new Profile structure
+  user1: Pick<Profile, 'id' | 'first_name' | 'last_name' | 'avatar_url'>; // Updated to match alias and selected fields
+  user2: Pick<Profile, 'id' | 'first_name' | 'last_name' | 'avatar_url'>; // Updated to match alias and selected fields
 }
 
 export interface Message {
@@ -101,5 +108,5 @@ export interface Message {
   text: string;
   created_at: string;
   is_read: boolean;
-  sender_profile?: Profile; // Updated to reflect new Profile structure
+  sender: Pick<Profile, 'id' | 'first_name' | 'last_name' | 'avatar_url'>; // Updated to match alias and selected fields
 }

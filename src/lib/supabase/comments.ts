@@ -6,7 +6,7 @@ export const getCommentsForVideo = async (videoId: string): Promise<Comment[]> =
   try {
     const { data, error } = await supabase
       .from('comments')
-      .select('*, profiles(first_name, last_name, avatar_url)')
+      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Explicitly use user_id for profiles
       .eq('video_id', videoId)
       .order('created_at', { ascending: true });
 
@@ -27,7 +27,7 @@ export const addComment = async (videoId: string, userId: string, text: string, 
     const { data, error } = await supabase
       .from('comments')
       .insert({ video_id: videoId, user_id: userId, text, parent_comment_id: parentCommentId })
-      .select('*, profiles(first_name, last_name, avatar_url)')
+      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Explicitly use user_id for profiles
       .single();
 
     if (error) {
@@ -64,7 +64,7 @@ export const getCommentsForCreatorVideos = async (userId: string): Promise<Comme
   try {
     const { data, error } = await supabase
       .from('comments')
-      .select('*, profiles(first_name, last_name, avatar_url), videos(title)')
+      .select('*, profiles!user_id(first_name, last_name, avatar_url), videos(title)') // Explicitly use user_id for profiles
       .in('video_id', supabase.from('videos').select('id').eq('user_id', userId))
       .order('created_at', { ascending: false });
 

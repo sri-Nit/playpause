@@ -25,6 +25,7 @@ interface CommentWithVideoTitle extends Comment {
   videos: { title: string };
 }
 
+// Updated VideoWithAnalytics to reflect the new Video type structure
 interface VideoWithAnalytics extends Video {
   likesCount: number;
   commentsCount: number;
@@ -58,7 +59,7 @@ const CreatorDashboard = () => {
 
       const videosWithAnalytics: VideoWithAnalytics[] = videos.map(video => {
         const analytics = analyticsMap[video.id] || { likes: 0, comments: 0 };
-        viewsCount += video.views;
+        viewsCount += video.video_stats?.[0]?.views || 0; // Correctly access views from embedded video_stats
         likesCount += analytics.likes;
         commentsCount += analytics.comments;
         return { ...video, likesCount: analytics.likes, commentsCount: analytics.comments };

@@ -444,7 +444,7 @@ const WatchVideo = () => {
               </p>
             </Link>
             <div className="flex items-center space-x-4">
-              <p className="text-sm">{video.views} views</p>
+              <p className="text-sm">{video.video_stats?.[0]?.views || 0} views</p> {/* Correctly access views */}
               <p className="text-sm">•</p>
               <p className="text-sm">{new Date(video.created_at).toLocaleDateString()}</p>
               {video.status === 'draft' && <Badge variant="secondary" className="ml-2">Draft</Badge>}

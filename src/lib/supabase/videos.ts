@@ -6,7 +6,7 @@ export const getVideos = async (): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Explicitly use user_id for profiles
       .eq('status', 'published')
       .order('created_at', { ascending: false });
 
@@ -26,7 +26,7 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles!user_id(first_name, last_name, avatar_url), video_stats!id(views)') // Include video_stats for views
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -43,7 +43,7 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
 
 // Function to add a new video to Supabase (metadata only, files handled separately)
 export const addVideoMetadata = async (
-  newVideo: Omit<Video, 'id' | 'created_at' | 'user_id' | 'views' | 'status' | 'profiles'>,
+  newVideo: Omit<Video, 'id' | 'created_at' | 'user_id' | 'updated_at' | 'status' | 'profiles' | 'video_stats' | 'channel'>, // Adjusted Omit type
   userId: string,
   initialStatus: 'draft' | 'published' | 'processing' = 'processing' // Default to 'processing'
 ): Promise<Video | null> => {
@@ -58,9 +58,9 @@ export const addVideoMetadata = async (
         thumbnail_url: newVideo.thumbnail_url,
         tags: newVideo.tags,
         status: initialStatus, // Use the provided initialStatus
-        duration: newVideo.duration,
+        duration_seconds: newVideo.duration_seconds, // Corrected to duration_seconds
       })
-      .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Select with join for consistency
       .single();
 
     if (error) {
@@ -79,7 +79,7 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles!user_id(first_name, last_name, avatar_url), video_stats!id(views)') // Include video_stats for views
       .eq('id', id)
       .single();
 
@@ -95,13 +95,13 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
 };
 
 // Function to update video metadata
-export const updateVideoMetadata = async (videoId: string, updatedFields: Partial<Omit<Video, 'id' | 'user_id' | 'created_at' | 'views' | 'profiles'>>): Promise<Video | null> => {
+export const updateVideoMetadata = async (videoId: string, updatedFields: Partial<Omit<Video, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'status' | 'profiles' | 'video_stats' | 'channel'>>): Promise<Video | null> => {
   try {
     const { data, error } = await supabase
       .from('videos')
       .update(updatedFields)
       .eq('id', videoId)
-      .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Select with join for consistency
       .single();
 
     if (error) {
@@ -122,7 +122,7 @@ export const updateVideoStatus = async (videoId: string, status: 'draft' | 'publ
       .from('videos')
       .update({ status: status })
       .eq('id', videoId)
-      .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Select with join for consistency
       .single();
 
     if (error) {
@@ -159,7 +159,7 @@ export const searchVideos = async (query: string): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Explicitly use user_id for profiles
       .eq('status', 'published')
       .or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
       .order('created_at', { ascending: false });
