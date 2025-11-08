@@ -43,9 +43,9 @@ const Header = () => {
         {/* Left section: Home and PlayPause */}
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-lg text-primary">PlayPause</span>
+            <span className="font-bold text-lg">PlayPause</span>
           </Link>
-          <Link to="/" className="hidden md:inline-block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200">
+          <Link to="/" className="hidden md:inline-block text-sm font-medium text-muted-foreground hover:text-foreground">
             Home
           </Link>
         </div>
@@ -68,55 +68,55 @@ const Header = () => {
         {/* Right section: Upload, Search (mobile), Notifications, Account */}
         <nav className="flex items-center space-x-2 md:space-x-4">
           <Link to="/upload">
-            <Button variant="ghost" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200">
+            <Button variant="ghost" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
               <span className="hidden md:inline">Upload Video</span>
             </Button>
           </Link>
           {/* Mobile search icon */}
-          <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground hover:text-foreground transition-colors duration-200" onClick={handleSearch}>
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={handleSearch}>
             <Search className="h-4 w-4" />
             <span className="sr-only">Search</span>
           </Button>
-          <Button variant="ghost" size="icon" className="hidden md:flex text-muted-foreground hover:text-foreground transition-colors duration-200">
+          <Button variant="ghost" size="icon" className="hidden md:flex">
             <Bell className="h-4 w-4" />
             <span className="sr-only">Notifications</span>
           </Button>
 
           {isLoading ? (
             <Button variant="ghost" size="icon" disabled>
-              <User className="h-4 w-4 text-muted-foreground" />
+              <User className="h-4 w-4" />
               <span className="sr-only">Loading...</span>
             </Button>
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
+                <Button variant="ghost" size="icon">
                   <User className="h-4 w-4" />
                   <span className="sr-only">Account Menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-card text-foreground border-border shadow-lg">
-                <DropdownMenuLabel className="text-foreground">My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-border" />
-                <DropdownMenuItem onClick={() => navigate('/you')} className="text-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200">
-                  <User className="mr-2 h-4 w-4 text-muted-foreground" />
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/you')}>
+                  <User className="mr-2 h-4 w-4" />
                   <span>You</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/dashboard')} className="text-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200">
-                  <LayoutDashboard className="mr-2 h-4 w-4 text-muted-foreground" />
+                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
                   <span>Creator Dashboard</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => console.log('Switch Account clicked')} className="text-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200">
-                  <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                <DropdownMenuItem onClick={() => console.log('Switch Account clicked')}>
+                  <Users className="mr-2 h-4 w-4" />
                   <span>Switch Account</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => console.log('Settings clicked')} className="text-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200">
-                  <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
+                <DropdownMenuItem onClick={() => console.log('Settings clicked')}>
+                  <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-border" />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors duration-200">
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log Out</span>
                 </DropdownMenuItem>
@@ -124,7 +124,7 @@ const Header = () => {
             </DropdownMenu>
           ) : (
             <Link to="/auth">
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground transition-colors duration-200">
+              <Button variant="ghost" size="icon">
                 <User className="h-4 w-4" />
                 <span className="sr-only">Login</span>
               </Button>

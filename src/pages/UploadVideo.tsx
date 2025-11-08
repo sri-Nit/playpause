@@ -125,9 +125,9 @@ const UploadVideo = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 bg-background">
-      <h1 className="text-3xl font-bold mb-6 text-center text-foreground">Upload Your Video</h1>
-      <div className="max-w-2xl mx-auto bg-card p-6 rounded-lg shadow-md border border-border">
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6 text-center">Upload Your Video</h1>
+      <div className="max-w-2xl mx-auto bg-card p-6 rounded-lg shadow-md">
         <Form {...form}>
           <form onSubmit={form.handleSubmit((values) => onSubmit(values, 'published'))} className="space-y-6"> {/* Changed default submit to 'published' */}
             <FormField
@@ -135,9 +135,9 @@ const UploadVideo = () => {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Video Title</FormLabel>
+                  <FormLabel>Video Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="My Awesome Video" {...field} className="bg-background text-foreground border-border" />
+                    <Input placeholder="My Awesome Video" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -148,9 +148,9 @@ const UploadVideo = () => {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Description</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Tell us about your video..." {...field} className="bg-background text-foreground border-border" />
+                    <Textarea placeholder="Tell us about your video..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -161,9 +161,9 @@ const UploadVideo = () => {
               name="tags"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Tags (comma-separated)</FormLabel>
+                  <FormLabel>Tags (comma-separated)</FormLabel>
                   <FormControl>
-                    <Input placeholder="gaming, tutorial, vlog" {...field} className="bg-background text-foreground border-border" />
+                    <Input placeholder="gaming, tutorial, vlog" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -175,14 +175,13 @@ const UploadVideo = () => {
               name="videoFile"
               render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Video File</FormLabel>
+                  <FormLabel>Video File</FormLabel>
                   <FormControl>
                     <Input
                       {...fieldProps}
                       type="file"
                       accept="video/*"
                       onChange={(event) => onChange(event.target.files)}
-                      className="bg-background text-foreground border-border file:text-accent file:bg-secondary file:border-border"
                     />
                   </FormControl>
                   <FormMessage />
@@ -194,14 +193,13 @@ const UploadVideo = () => {
               name="thumbnailFile"
               render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Thumbnail File</FormLabel>
+                  <FormLabel>Thumbnail File</FormLabel>
                   <FormControl>
                     <Input
                       {...fieldProps}
                       type="file"
                       accept="image/*"
                       onChange={(event) => onChange(event.target.files)}
-                      className="bg-background text-foreground border-border file:text-accent file:bg-secondary file:border-border"
                     />
                   </FormControl>
                   <FormMessage />
@@ -209,19 +207,19 @@ const UploadVideo = () => {
               )}
             />
             <div className="flex space-x-4">
-              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 transition-colors duration-200 hover:scale-[1.03]" disabled={isUploading}>
+              <Button type="submit" className="w-full" disabled={isUploading}>
                 {isUploading ? 'Uploading...' : 'Upload Video'}
               </Button>
-              <Button type="button" variant="outline" className="w-full border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200 hover:scale-[1.03]" onClick={form.handleSubmit((values) => onSubmit(values, 'draft'))} disabled={isUploading}>
+              <Button type="button" variant="outline" className="w-full" onClick={form.handleSubmit((values) => onSubmit(values, 'draft'))} disabled={isUploading}>
                 {isUploading ? 'Saving Draft...' : 'Save as Draft'}
               </Button>
             </div>
           </form>
         </Form>
         
-        <div className="mt-6 p-4 bg-secondary border border-border rounded-md text-muted-foreground">
-          <h3 className="font-medium text-foreground">Troubleshooting Tips</h3>
-          <ul className="mt-2 text-sm list-disc pl-5 space-y-1">
+        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <h3 className="font-medium text-yellow-800">Troubleshooting Tips</h3>
+          <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5 space-y-1">
             <li>Ensure both "videos" and "thumbnails" storage buckets exist</li>
             <li>Check that bucket policies allow authenticated uploads</li>
             <li>Verify that public access is enabled for both buckets</li>

@@ -145,57 +145,57 @@ const CreatorDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 bg-background">
-      <h1 className="text-4xl font-bold mb-8 text-center text-foreground">Creator Dashboard</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-4xl font-bold mb-8 text-center">Creator Dashboard</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-secondary text-muted-foreground border-border">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-colors duration-200">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">
             <BarChart className="mr-2 h-4 w-4" /> Overview
           </TabsTrigger>
-          <TabsTrigger value="videos" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-colors duration-200">
+          <TabsTrigger value="videos">
             <VideoIcon className="mr-2 h-4 w-4" /> My Videos
           </TabsTrigger>
-          <TabsTrigger value="comments" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-colors duration-200">
+          <TabsTrigger value="comments">
             <MessageCircle className="mr-2 h-4 w-4" /> Comment Management
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-card text-foreground border-border shadow-md">
+            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-foreground">Total Views</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Views</CardTitle>
                 <Eye className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{totalViews}</div>
+                <div className="text-2xl font-bold">{totalViews}</div>
                 <p className="text-xs text-muted-foreground">Across all your videos</p>
               </CardContent>
             </Card>
-            <Card className="bg-card text-foreground border-border shadow-md">
+            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-foreground">Total Likes</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Likes</CardTitle>
                 <Heart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{totalLikes}</div>
+                <div className="text-2xl font-bold">{totalLikes}</div>
                 <p className="text-xs text-muted-foreground">Across all your videos</p>
               </CardContent>
             </Card>
-            <Card className="bg-card text-foreground border-border shadow-md">
+            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-foreground">Total Comments</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Comments</CardTitle>
                 <MessageCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{totalComments}</div>
+                <div className="text-2xl font-bold">{totalComments}</div>
                 <p className="text-xs text-muted-foreground">Across all your videos</p>
               </CardContent>
             </Card>
           </div>
           <div className="mt-8 text-center">
-            <Button onClick={() => navigate('/upload')} className="bg-accent text-accent-foreground hover:bg-accent/90 transition-colors duration-200 hover:scale-[1.03]">
+            <Button onClick={() => navigate('/upload')}>
               <PlusCircle className="mr-2 h-4 w-4" /> Upload New Video
             </Button>
           </div>
@@ -205,7 +205,7 @@ const CreatorDashboard = () => {
           {creatorVideos.length === 0 ? (
             <div className="text-center text-muted-foreground py-10">
               You haven't uploaded any videos yet.
-              <Button onClick={() => navigate('/upload')} className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90 transition-colors duration-200 hover:scale-[1.03]">
+              <Button onClick={() => navigate('/upload')} className="mt-4">
                 <PlusCircle className="mr-2 h-4 w-4" /> Upload Your First Video
               </Button>
             </div>
@@ -226,7 +226,7 @@ const CreatorDashboard = () => {
         </TabsContent>
 
         <TabsContent value="comments" className="mt-6">
-          <h2 className="text-2xl font-bold mb-4 text-foreground">Comments on Your Videos</h2>
+          <h2 className="text-2xl font-bold mb-4">Comments on Your Videos</h2>
           {allComments.length === 0 ? (
             <div className="text-center text-muted-foreground py-10">
               No comments on your videos yet.
@@ -234,32 +234,32 @@ const CreatorDashboard = () => {
           ) : (
             <div className="space-y-6">
               {allComments.map((comment) => (
-                <Card key={comment.id} className="p-4 bg-card text-foreground border-border shadow-sm">
+                <Card key={comment.id} className="p-4">
                   <div className="flex items-start space-x-3">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={comment.creator_profiles?.avatar_url || undefined} alt={comment.creator_profiles?.first_name || 'Commenter'} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        <LucideUser className="h-4 w-4" />
+                      <AvatarFallback>
+                        <LucideUser className="h-4 w-4 text-muted-foreground" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-sm text-foreground">
+                        <span className="font-semibold text-sm">
                           {comment.creator_profiles?.first_name} {comment.creator_profiles?.last_name}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {new Date(comment.created_at).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-sm mt-1 text-foreground">{comment.text}</p>
+                      <p className="text-sm mt-1">{comment.text}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         On video: <span className="font-medium">{comment.videos?.title || 'Unknown Video'}</span>
                       </p>
                       <div className="flex space-x-2 mt-2">
-                        <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-destructive hover:text-destructive/80 transition-colors duration-200" onClick={() => handleDeleteComment(comment.id)}>
+                        <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-red-500 hover:text-red-700" onClick={() => handleDeleteComment(comment.id)}>
                           <Trash2 className="mr-1 h-3 w-3" /> Delete
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-accent hover:text-accent/80 transition-colors duration-200" onClick={() => { setReplyingToCommentId(comment.id); setReplyText(''); }}>
+                        <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-primary hover:text-primary/80" onClick={() => { setReplyingToCommentId(comment.id); setReplyText(''); }}>
                           <Reply className="mr-1 h-3 w-3" /> Reply
                         </Button>
                       </div>
@@ -274,10 +274,10 @@ const CreatorDashboard = () => {
 
       {/* Reply Dialog */}
       <Dialog open={!!replyingToCommentId} onOpenChange={() => setReplyingToCommentId(null)}>
-        <DialogContent className="bg-card text-foreground border-border shadow-lg">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-foreground">Reply to Comment</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
+            <DialogTitle>Reply to Comment</DialogTitle>
+            <DialogDescription>
               Replying to a comment on "{allComments.find(c => c.id === replyingToCommentId)?.videos?.title || 'this video'}".
             </DialogDescription>
           </DialogHeader>
@@ -286,13 +286,12 @@ const CreatorDashboard = () => {
               placeholder="Write your reply..."
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              className="bg-background text-foreground border-border"
               rows={4}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setReplyingToCommentId(null)} className="border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200">Cancel</Button>
-            <Button onClick={handleReplyToComment} disabled={!replyText.trim()} className="bg-accent text-accent-foreground hover:bg-accent/90 transition-colors duration-200">Post Reply</Button>
+            <Button variant="outline" onClick={() => setReplyingToCommentId(null)}>Cancel</Button>
+            <Button onClick={handleReplyToComment} disabled={!replyText.trim()}>Post Reply</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

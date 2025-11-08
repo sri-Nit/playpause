@@ -214,81 +214,77 @@ const YouPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl bg-background">
-      <h1 className="text-4xl font-bold mb-8 text-center text-foreground">Your Account</h1>
+    <div className="container mx-auto p-4 max-w-4xl">
+      <h1 className="text-4xl font-bold mb-8 text-center">Your Account</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-secondary text-muted-foreground border-border">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-colors duration-200">Profile Details</TabsTrigger>
-          <TabsTrigger value="liked" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-colors duration-200">Liked Videos</TabsTrigger>
-          <TabsTrigger value="history" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-colors duration-200">Watch History</TabsTrigger>
-          <TabsTrigger value="subscribed" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-colors duration-200">Joined Crews</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="profile">Profile Details</TabsTrigger>
+          <TabsTrigger value="liked">Liked Videos</TabsTrigger>
+          <TabsTrigger value="history">Watch History</TabsTrigger>
+          <TabsTrigger value="subscribed">Joined Crews</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
-          <Card className="bg-card text-foreground border-border shadow-md">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-foreground">Your Profile</CardTitle>
-              <CardDescription className="text-muted-foreground">Manage your account details.</CardDescription>
+              <CardTitle className="text-2xl font-bold">Your Profile</CardTitle>
+              <CardDescription>Manage your account details.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
                 <Avatar className="h-20 w-20">
                   <AvatarImage src={avatarUrl || user.user_metadata.avatar_url || undefined} alt={user.email || 'User'} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    <LucideUser className="h-10 w-10" />
+                  <AvatarFallback>
+                    <LucideUser className="h-10 w-10 text-muted-foreground" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-center sm:text-left">
-                  <p className="text-lg font-semibold text-foreground">{user.email}</p>
+                  <p className="text-lg font-semibold">{user.email}</p>
                   <p className="text-sm text-muted-foreground">Member since: {new Date(user.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
 
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="firstName" className="text-foreground">First Name</Label>
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="First Name"
-                    className="bg-background text-foreground border-border"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="lastName" className="text-foreground">Last Name</Label>
+                  <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Last Name"
-                    className="bg-background text-foreground border-border"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="avatarFile" className="text-foreground">Upload Avatar</Label>
+                  <Label htmlFor="avatarFile">Upload Avatar</Label>
                   <Input
                     id="avatarFile"
                     type="file"
                     accept="image/*"
                     onChange={handleAvatarFileChange}
-                    className="bg-background text-foreground border-border file:text-accent file:bg-secondary file:border-border"
                   />
                   {avatarFile && <p className="text-sm text-muted-foreground">Selected: {avatarFile.name}</p>}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="avatarUrl" className="text-foreground">Avatar URL (or upload above)</Label>
+                  <Label htmlFor="avatarUrl">Avatar URL (or upload above)</Label>
                   <Input
                     id="avatarUrl"
                     value={avatarUrl}
                     onChange={(e) => setAvatarUrl(e.target.value)}
                     placeholder="https://example.com/avatar.jpg"
                     disabled={!!avatarFile}
-                    className="bg-background text-foreground border-border"
                   />
                 </div>
-                <Button onClick={handleUpdateProfile} disabled={isUpdating} className="bg-accent text-accent-foreground hover:bg-accent/90 transition-colors duration-200 hover:scale-[1.03]">
+                <Button onClick={handleUpdateProfile} disabled={isUpdating}>
                   {isUpdating ? 'Updating...' : 'Update Profile'}
                 </Button>
               </div>
@@ -297,11 +293,11 @@ const YouPage = () => {
         </TabsContent>
 
         <TabsContent value="liked" className="mt-6">
-          <h2 className="text-2xl font-bold mb-4 text-foreground">Your Liked Videos</h2>
+          <h2 className="text-2xl font-bold mb-4">Your Liked Videos</h2>
           {isContentLoading ? (
             <div className="text-center text-muted-foreground py-10">Loading liked videos...</div>
           ) : likedVideos.length === 0 ? (
-            <div className="text-center text-muted-foreground py-10">You haven't liked any videos yet.</div>
+            <div className="text-center text-muted-foreground">You haven't liked any videos yet.</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {likedVideos.map((video) => (
@@ -312,11 +308,11 @@ const YouPage = () => {
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">
-          <h2 className="text-2xl font-bold mb-4 text-foreground">Your Watch History</h2>
+          <h2 className="text-2xl font-bold mb-4">Your Watch History</h2>
           {isContentLoading ? (
             <div className="text-center text-muted-foreground py-10">Loading watch history...</div>
           ) : watchHistory.length === 0 ? (
-            <div className="text-center text-muted-foreground py-10">You haven't watched any videos yet. Start exploring!</div>
+            <div className="text-center text-muted-foreground">You haven't watched any videos yet. Start exploring!</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {watchHistory.map((entry) => (
@@ -327,11 +323,11 @@ const YouPage = () => {
         </TabsContent>
 
         <TabsContent value="subscribed" className="mt-6">
-          <h2 className="text-2xl font-bold mb-4 text-foreground">Videos from Joined Crews</h2>
+          <h2 className="text-2xl font-bold mb-4">Videos from Joined Crews</h2>
           {isContentLoading ? (
             <div className="text-center text-muted-foreground py-10">Loading videos from joined crews...</div>
           ) : subscribedVideos.length === 0 ? (
-            <div className="text-center text-muted-foreground py-10">You haven't joined any crews yet, or they haven't uploaded videos.</div>
+            <div className="text-center text-muted-foreground">You haven't joined any crews yet, or they haven't uploaded videos.</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {subscribedVideos.map((video) => (

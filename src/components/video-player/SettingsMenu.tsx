@@ -45,7 +45,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
           <Button
             variant="ghost"
             size="icon"
-            className="text-primary-foreground hover:bg-primary-foreground/20 focus-visible:ring-0"
+            className="text-white hover:bg-white/20 focus-visible:ring-0"
             onClick={(e) => { e.stopPropagation(); console.log("Settings button clicked!"); }} // Added console.log
           >
             <Settings className="h-5 w-5" />
@@ -55,7 +55,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
 
         <DropdownMenuContent
           forceMount
-          className="fixed w-48 bg-primary text-primary-foreground border-border rounded-md z-[999999] p-1 shadow-lg backdrop-blur-sm"
+          className="fixed w-48 bg-black/80 text-white border-none rounded-md z-[999999] p-1 shadow-lg backdrop-blur-sm"
           side="top"
           align="end"
           sideOffset={12}
@@ -67,15 +67,15 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
           {/* MAIN VIEW */}
           {settingsView === 'main' && (
             <>
-              <DropdownMenuLabel className="text-primary-foreground">Video Settings</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuLabel>Video Settings</DropdownMenuLabel>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
                   e.stopPropagation(); // Stop propagation
                   setSettingsView('speed');
                 }}
-                className="flex justify-between items-center text-primary-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200"
+                className="flex justify-between items-center"
               >
                 <span>Playback Speed</span>
                 <span className="text-muted-foreground">
@@ -88,7 +88,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   e.stopPropagation(); // Stop propagation
                   setSettingsView('quality');
                 }}
-                className="flex justify-between items-center text-primary-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200"
+                className="flex justify-between items-center"
               >
                 <span>Quality</span>
                 <span className="text-muted-foreground">{currentQuality}</span>
@@ -99,18 +99,18 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
           {/* SPEED VIEW */}
           {settingsView === 'speed' && (
             <>
-              <DropdownMenuLabel className="flex items-center text-primary-foreground">
+              <DropdownMenuLabel className="flex items-center">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 mr-2 text-primary-foreground hover:bg-primary-foreground/20"
+                  className="h-6 w-6 mr-2"
                   onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }} // Stop propagation
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 Playback Speed
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuSeparator />
               <DropdownMenuRadioGroup
                 value={playbackSpeed.toString()}
                 onValueChange={(value) =>
@@ -122,7 +122,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                     key={speed}
                     value={speed.toString()}
                     onSelect={(e) => e.stopPropagation()} // Stop propagation
-                    className="text-primary-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200"
                   >
                     {speed === 1.0 ? 'Normal' : `${speed}x`}
                   </DropdownMenuRadioItem>
@@ -134,18 +133,18 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
           {/* QUALITY VIEW */}
           {settingsView === 'quality' && (
             <>
-              <DropdownMenuLabel className="flex items-center text-primary-foreground">
+              <DropdownMenuLabel className="flex items-center">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 mr-2 text-primary-foreground hover:bg-primary-foreground/20"
+                  className="h-6 w-6 mr-2"
                   onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }} // Stop propagation
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 Quality
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuSeparator />
               <DropdownMenuRadioGroup
                 value={currentQuality}
                 onValueChange={handleQualityChange}
@@ -155,7 +154,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                     key={quality}
                     value={quality}
                     onSelect={(e) => e.stopPropagation()} // Stop propagation
-                    className="text-primary-foreground hover:bg-secondary hover:text-foreground transition-colors duration-200"
                   >
                     {quality}
                   </DropdownMenuRadioItem>
