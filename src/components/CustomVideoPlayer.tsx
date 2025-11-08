@@ -12,13 +12,13 @@ interface CustomVideoPlayerProps {
   videoId: string;
 }
 
-const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
+const CustomVideoPlayer = ({ // Removed React.FC<CustomVideoPlayerProps>
   videoUrl,
   title,
   thumbnailUrl,
   onProgressThresholdMet,
   videoId,
-}) => {
+}: CustomVideoPlayerProps) => { // Added type annotation to parameters
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
@@ -182,7 +182,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
           autoPlay
           muted
           playsInline
-          onClick={togglePlayPause} {/* Moved onClick here */}
+          onClick={togglePlayPause}
         >
           Your browser does not support the video tag.
         </video>
