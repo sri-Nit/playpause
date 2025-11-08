@@ -66,14 +66,14 @@ const UploadVideo = () => {
     }
   };
 
-  const onSubmit = async (values: z.infer<typeof formSchema>, initialStatus: 'draft' | 'processing') => {
+  const onSubmit = async (values: z.infer<typeof formSchema>, initialStatus: 'draft' | 'published') => { // Changed 'processing' to 'published'
     if (!user) {
       toast.error('You must be logged in to upload a video.');
       return;
     }
 
     setIsUploading(true);
-    const loadingToastId = toast.loading(initialStatus === 'processing' ? 'Uploading video for processing...' : 'Saving video as draft...');
+    const loadingToastId = toast.loading(initialStatus === 'published' ? 'Uploading video...' : 'Saving video as draft...'); // Updated toast message
 
     try {
       const videoFile = values.videoFile[0];
@@ -102,11 +102,10 @@ const UploadVideo = () => {
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
         tags: videoTags,
-        // duration is no longer passed
-      }, user.id, initialStatus); // Pass initialStatus here
+      }, user.id, initialStatus);
 
       if (addedVideo) {
-        toast.success(initialStatus === 'processing' ? 'Video uploaded! It will be available after processing.' : 'Video saved as draft!', { id: loadingToastId });
+        toast.success(initialStatus === 'published' ? 'Video uploaded and published!' : 'Video saved as draft!', { id: loadingToastId }); // Updated toast message
         form.reset();
         navigate('/dashboard'); // Redirect to dashboard after upload/draft
       } else {
@@ -130,7 +129,7 @@ const UploadVideo = () => {
       <h1 className="text-3xl font-bold mb-6 text-center">Upload Your Video</h1>
       <div className="max-w-2xl mx-auto bg-card p-6 rounded-lg shadow-md">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((values) => onSubmit(values, 'processing'))} className="space-y-6">
+          <form onSubmit={form.handleSubmit((values) => onSubmit(values, 'published'))} className="space-y-6"> {/* Changed default submit to 'published' */}
             <FormField
               control={form.control}
               name="title"

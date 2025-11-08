@@ -66,12 +66,7 @@ const WatchVideo = () => {
           setIsLoading(false);
           return;
         }
-        if (fetchedVideo.status === 'processing') {
-          setError('This video is currently being processed. Please check back later.');
-          setVideo(fetchedVideo); // Still set video to show title/thumbnail
-          setIsLoading(false);
-          return;
-        }
+        // Removed handling for 'processing' status
         if (fetchedVideo.status === 'blocked') {
           setError('This video has been blocked due to content policy violations.');
           setVideo(fetchedVideo); // Still set video to show title/thumbnail
@@ -375,8 +370,8 @@ const WatchVideo = () => {
   }
 
   if (error) {
-    // If there's an error, and we have video data (e.g., for processing/blocked status), display it
-    if (video && (video.status === 'processing' || video.status === 'blocked')) {
+    // If there's an error, and we have video data (e.g., for blocked status), display it
+    if (video && video.status === 'blocked') { // Removed 'processing' from this condition
       const isOwner = user && user.id === video.user_id;
       return (
         <div className="container mx-auto p-4 max-w-4xl text-center">
@@ -390,16 +385,9 @@ const WatchVideo = () => {
               />
             )}
             <p className="text-xl text-muted-foreground mb-6">
-              {video.status === 'processing'
-                ? 'This video is currently being processed. Please check back later.'
-                : 'This video has been blocked due to content policy violations.'}
+              This video has been blocked due to content policy violations.
             </p>
-            {isOwner && video.status === 'processing' && (
-              <p className="text-sm text-muted-foreground">
-                You will be notified when your video is ready.
-              </p>
-            )}
-            {isOwner && video.status === 'blocked' && (
+            {isOwner && (
               <p className="text-sm text-muted-foreground">
                 Please review our content guidelines or contact support for more information.
               </p>
@@ -411,7 +399,7 @@ const WatchVideo = () => {
         </div>
       );
     }
-    // For other errors (e.g., video not found, network issues)
+    // For other errors (e.g., video not found, network issues, or draft access error)
     return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">{error}</div>;
   }
 
