@@ -6,7 +6,7 @@ export const getProfileById = async (id: string): Promise<Profile | null> => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, avatar_url, message_preference')
+      .select('id, username, display_name, created_at') // Updated to select new fields
       .eq('id', id)
       .single();
 
@@ -22,6 +22,9 @@ export const getProfileById = async (id: string): Promise<Profile | null> => {
 };
 
 // Function to update a user's message preference.
+// NOTE: message_preference was removed from the new schema. This function will be removed or adapted later if a similar feature is requested.
+// For now, I'm commenting it out as it references a non-existent column.
+/*
 export const updateProfileMessagePreference = async (
   userId: string,
   preference: 'open' | 'requests' | 'blocked',
@@ -31,7 +34,7 @@ export const updateProfileMessagePreference = async (
       .from('profiles')
       .update({ message_preference: preference })
       .eq('id', userId)
-      .select('id, first_name, last_name, avatar_url, message_preference')
+      .select('id, username, display_name, created_at') // Updated to select new fields
       .single();
 
     if (error) {
@@ -43,3 +46,4 @@ export const updateProfileMessagePreference = async (
     throw error;
   }
 };
+*/
