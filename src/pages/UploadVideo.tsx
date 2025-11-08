@@ -19,10 +19,6 @@ const formSchema = z.object({
   videoFile: z.any().refine((file) => file?.length > 0, 'Video file is required.'),
   thumbnailFile: z.any().refine((file) => file?.length > 0, 'Thumbnail file is required.'),
   tags: z.string().optional(),
-  duration: z.preprocess(
-    (val) => Number(val),
-    z.number().int().min(1, { message: 'Duration must be at least 1 second.' }).optional(),
-  ),
 });
 
 const UploadVideo = () => {
@@ -36,7 +32,6 @@ const UploadVideo = () => {
       title: '',
       description: '',
       tags: '',
-      duration: undefined,
     },
   });
 
@@ -107,7 +102,7 @@ const UploadVideo = () => {
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
         tags: videoTags,
-        duration: values.duration || null,
+        // duration is no longer passed
       }, user.id, initialStatus); // Pass initialStatus here
 
       if (addedVideo) {
@@ -175,19 +170,7 @@ const UploadVideo = () => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Video Duration (seconds)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 300 for 5 minutes" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Removed duration input field */}
             <FormField
               control={form.control}
               name="videoFile"

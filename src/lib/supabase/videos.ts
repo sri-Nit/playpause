@@ -18,7 +18,6 @@ export const getVideos = async (): Promise<Video[]> => {
         video_url,
         hls_master_path,
         thumbnail_url,
-        duration_seconds,
         size_bytes,
         created_at,
         updated_at,
@@ -55,7 +54,6 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
         video_url,
         hls_master_path,
         thumbnail_url,
-        duration_seconds,
         size_bytes,
         created_at,
         updated_at,
@@ -93,7 +91,7 @@ export const addVideoMetadata = async (
         thumbnail_url: newVideo.thumbnail_url,
         tags: newVideo.tags,
         status: initialStatus, // Use the provided initialStatus
-        duration_seconds: newVideo.duration_seconds, // Corrected to duration_seconds
+        // duration_seconds is no longer inserted
       })
       .select(`
         id,
@@ -107,7 +105,6 @@ export const addVideoMetadata = async (
         video_url,
         hls_master_path,
         thumbnail_url,
-        duration_seconds,
         size_bytes,
         created_at,
         updated_at,
@@ -143,7 +140,6 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
         video_url,
         hls_master_path,
         thumbnail_url,
-        duration_seconds,
         size_bytes,
         created_at,
         updated_at,
@@ -183,7 +179,6 @@ export const updateVideoMetadata = async (videoId: string, updatedFields: Partia
         video_url,
         hls_master_path,
         thumbnail_url,
-        duration_seconds,
         size_bytes,
         created_at,
         updated_at,
@@ -221,7 +216,6 @@ export const updateVideoStatus = async (videoId: string, status: 'draft' | 'publ
         video_url,
         hls_master_path,
         thumbnail_url,
-        duration_seconds,
         size_bytes,
         created_at,
         updated_at,
@@ -275,7 +269,6 @@ export const searchVideos = async (query: string): Promise<Video[]> => {
         video_url,
         hls_master_path,
         thumbnail_url,
-        duration_seconds,
         size_bytes,
         created_at,
         updated_at,

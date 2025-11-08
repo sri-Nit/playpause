@@ -31,7 +31,7 @@ export interface Video {
   video_url: string | null; // Corrected from raw_path
   hls_master_path: string | null;
   thumbnail_url: string | null; // Corrected from thumbnail_path
-  duration_seconds: number | null;
+  // duration_seconds: number | null; // Removed
   size_bytes: number | null;
   created_at: string;
   updated_at: string;
