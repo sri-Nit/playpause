@@ -6,7 +6,15 @@ export const getCommentsForVideo = async (videoId: string): Promise<Comment[]> =
   try {
     const { data, error } = await supabase
       .from('comments')
-      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Explicitly use user_id for profiles
+      .select(`
+        id,
+        video_id,
+        user_id,
+        text,
+        created_at,
+        parent_comment_id,
+        profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list comment columns and then the join
       .eq('video_id', videoId)
       .order('created_at', { ascending: true });
 
@@ -27,7 +35,15 @@ export const addComment = async (videoId: string, userId: string, text: string, 
     const { data, error } = await supabase
       .from('comments')
       .insert({ video_id: videoId, user_id: userId, text, parent_comment_id: parentCommentId })
-      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Explicitly use user_id for profiles
+      .select(`
+        id,
+        video_id,
+        user_id,
+        text,
+        created_at,
+        parent_comment_id,
+        profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list comment columns and then the join
       .single();
 
     if (error) {
@@ -64,7 +80,16 @@ export const getCommentsForCreatorVideos = async (userId: string): Promise<Comme
   try {
     const { data, error } = await supabase
       .from('comments')
-      .select('*, profiles!user_id(first_name, last_name, avatar_url), videos(title)') // Explicitly use user_id for profiles
+      .select(`
+        id,
+        video_id,
+        user_id,
+        text,
+        created_at,
+        parent_comment_id,
+        profiles!user_id(first_name, last_name, avatar_url),
+        videos(title)
+      `) // Explicitly list comment columns and then the joins
       .in('video_id', supabase.from('videos').select('id').eq('user_id', userId))
       .order('created_at', { ascending: false });
 

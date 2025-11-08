@@ -6,7 +6,24 @@ export const getVideos = async (): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Explicitly use user_id for profiles
+      .select(`
+        id,
+        user_id,
+        channel_id,
+        title,
+        description,
+        tags,
+        visibility,
+        status,
+        video_url,
+        hls_master_path,
+        thumbnail_url,
+        duration_seconds,
+        size_bytes,
+        created_at,
+        updated_at,
+        profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and then the join
       .eq('status', 'published')
       .order('created_at', { ascending: false });
 
@@ -26,7 +43,25 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles!user_id(first_name, last_name, avatar_url), video_stats!id(views)') // Include video_stats for views
+      .select(`
+        id,
+        user_id,
+        channel_id,
+        title,
+        description,
+        tags,
+        visibility,
+        status,
+        video_url,
+        hls_master_path,
+        thumbnail_url,
+        duration_seconds,
+        size_bytes,
+        created_at,
+        updated_at,
+        profiles!user_id(first_name, last_name, avatar_url),
+        video_stats!id(views)
+      `) // Explicitly list video columns and then the joins
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -60,7 +95,24 @@ export const addVideoMetadata = async (
         status: initialStatus, // Use the provided initialStatus
         duration_seconds: newVideo.duration_seconds, // Corrected to duration_seconds
       })
-      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select(`
+        id,
+        user_id,
+        channel_id,
+        title,
+        description,
+        tags,
+        visibility,
+        status,
+        video_url,
+        hls_master_path,
+        thumbnail_url,
+        duration_seconds,
+        size_bytes,
+        created_at,
+        updated_at,
+        profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and then the join
       .single();
 
     if (error) {
@@ -79,7 +131,25 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles!user_id(first_name, last_name, avatar_url), video_stats!id(views)') // Include video_stats for views
+      .select(`
+        id,
+        user_id,
+        channel_id,
+        title,
+        description,
+        tags,
+        visibility,
+        status,
+        video_url,
+        hls_master_path,
+        thumbnail_url,
+        duration_seconds,
+        size_bytes,
+        created_at,
+        updated_at,
+        profiles!user_id(first_name, last_name, avatar_url),
+        video_stats!id(views)
+      `) // Explicitly list video columns and then the joins
       .eq('id', id)
       .single();
 
@@ -101,7 +171,24 @@ export const updateVideoMetadata = async (videoId: string, updatedFields: Partia
       .from('videos')
       .update(updatedFields)
       .eq('id', videoId)
-      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select(`
+        id,
+        user_id,
+        channel_id,
+        title,
+        description,
+        tags,
+        visibility,
+        status,
+        video_url,
+        hls_master_path,
+        thumbnail_url,
+        duration_seconds,
+        size_bytes,
+        created_at,
+        updated_at,
+        profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and then the join
       .single();
 
     if (error) {
@@ -122,7 +209,24 @@ export const updateVideoStatus = async (videoId: string, status: 'draft' | 'publ
       .from('videos')
       .update({ status: status })
       .eq('id', videoId)
-      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select(`
+        id,
+        user_id,
+        channel_id,
+        title,
+        description,
+        tags,
+        visibility,
+        status,
+        video_url,
+        hls_master_path,
+        thumbnail_url,
+        duration_seconds,
+        size_bytes,
+        created_at,
+        updated_at,
+        profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and then the join
       .single();
 
     if (error) {
@@ -159,7 +263,24 @@ export const searchVideos = async (query: string): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles!user_id(first_name, last_name, avatar_url)') // Explicitly use user_id for profiles
+      .select(`
+        id,
+        user_id,
+        channel_id,
+        title,
+        description,
+        tags,
+        visibility,
+        status,
+        video_url,
+        hls_master_path,
+        thumbnail_url,
+        duration_seconds,
+        size_bytes,
+        created_at,
+        updated_at,
+        profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and then the join
       .eq('status', 'published')
       .or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
       .order('created_at', { ascending: false });
