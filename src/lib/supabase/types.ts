@@ -35,7 +35,7 @@ export interface Video {
   size_bytes: number | null;
   created_at: string;
   updated_at: string;
-  profiles?: Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>; // Embedded profile
+  creator_profiles?: Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>; // Embedded profile with alias
   video_stats?: { views: number }[]; // Embedded video stats for views
   channel?: Channel; // Added to include channel data
 }
@@ -62,7 +62,7 @@ export interface Comment {
   text: string;
   created_at: string;
   parent_comment_id: string | null; // Added parent_comment_id
-  profiles?: Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>; // Embedded profile
+  creator_profiles?: Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>; // Embedded profile with alias
 }
 
 export interface Subscription {

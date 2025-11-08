@@ -22,8 +22,8 @@ export const getVideos = async (): Promise<Video[]> => {
         size_bytes,
         created_at,
         updated_at,
-        profiles!user_id(first_name, last_name, avatar_url)
-      `) // Explicitly list video columns and then the join
+        creator_profiles:profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and use alias for profiles
       .eq('status', 'published')
       .order('created_at', { ascending: false });
 
@@ -59,9 +59,9 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
         size_bytes,
         created_at,
         updated_at,
-        profiles!user_id(first_name, last_name, avatar_url),
+        creator_profiles:profiles!user_id(first_name, last_name, avatar_url),
         video_stats!id(views)
-      `) // Explicitly list video columns and then the joins
+      `) // Explicitly list video columns and use alias for profiles
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -78,7 +78,7 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
 
 // Function to add a new video to Supabase (metadata only, files handled separately)
 export const addVideoMetadata = async (
-  newVideo: Omit<Video, 'id' | 'created_at' | 'user_id' | 'updated_at' | 'status' | 'profiles' | 'video_stats' | 'channel'>, // Adjusted Omit type
+  newVideo: Omit<Video, 'id' | 'created_at' | 'user_id' | 'updated_at' | 'status' | 'creator_profiles' | 'video_stats' | 'channel'>, // Adjusted Omit type
   userId: string,
   initialStatus: 'draft' | 'published' | 'processing' = 'processing' // Default to 'processing'
 ): Promise<Video | null> => {
@@ -111,8 +111,8 @@ export const addVideoMetadata = async (
         size_bytes,
         created_at,
         updated_at,
-        profiles!user_id(first_name, last_name, avatar_url)
-      `) // Explicitly list video columns and then the join
+        creator_profiles:profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and use alias for profiles
       .single();
 
     if (error) {
@@ -147,9 +147,9 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
         size_bytes,
         created_at,
         updated_at,
-        profiles!user_id(first_name, last_name, avatar_url),
+        creator_profiles:profiles!user_id(first_name, last_name, avatar_url),
         video_stats!id(views)
-      `) // Explicitly list video columns and then the joins
+      `) // Explicitly list video columns and use alias for profiles
       .eq('id', id)
       .single();
 
@@ -165,7 +165,7 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
 };
 
 // Function to update video metadata
-export const updateVideoMetadata = async (videoId: string, updatedFields: Partial<Omit<Video, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'status' | 'profiles' | 'video_stats' | 'channel'>>): Promise<Video | null> => {
+export const updateVideoMetadata = async (videoId: string, updatedFields: Partial<Omit<Video, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'status' | 'creator_profiles' | 'video_stats' | 'channel'>>): Promise<Video | null> => {
   try {
     const { data, error } = await supabase
       .from('videos')
@@ -187,8 +187,8 @@ export const updateVideoMetadata = async (videoId: string, updatedFields: Partia
         size_bytes,
         created_at,
         updated_at,
-        profiles!user_id(first_name, last_name, avatar_url)
-      `) // Explicitly list video columns and then the join
+        creator_profiles:profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and use alias for profiles
       .single();
 
     if (error) {
@@ -225,8 +225,8 @@ export const updateVideoStatus = async (videoId: string, status: 'draft' | 'publ
         size_bytes,
         created_at,
         updated_at,
-        profiles!user_id(first_name, last_name, avatar_url)
-      `) // Explicitly list video columns and then the join
+        creator_profiles:profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and use alias for profiles
       .single();
 
     if (error) {
@@ -279,8 +279,8 @@ export const searchVideos = async (query: string): Promise<Video[]> => {
         size_bytes,
         created_at,
         updated_at,
-        profiles!user_id(first_name, last_name, avatar_url)
-      `) // Explicitly list video columns and then the join
+        creator_profiles:profiles!user_id(first_name, last_name, avatar_url)
+      `) // Explicitly list video columns and use alias for profiles
       .eq('status', 'published')
       .or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
       .order('created_at', { ascending: false });

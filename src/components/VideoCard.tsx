@@ -1,5 +1,5 @@
 import React from 'react';
-import { Video } from '@/lib/video-store'; // Video now includes profiles
+import { Video } from '@/lib/video-store'; // Video now includes creator_profiles
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Link } from 'react-router-dom';
@@ -12,7 +12,7 @@ interface VideoCardProps {
 
 const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
   // Creator profile is now directly available on the video object
-  const creatorProfile = video.profiles;
+  const creatorProfile = video.creator_profiles;
 
   return (
     <Link to={`/watch/${video.id}`} className="block">
@@ -44,7 +44,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
               </CardDescription>
             </Link>
             <CardDescription className="text-sm text-muted-foreground">
-              {video.views} views • {new Date(video.created_at).toLocaleDateString()}
+              {video.video_stats?.[0]?.views || 0} views • {new Date(video.created_at).toLocaleDateString()}
             </CardDescription>
           </div>
         </CardHeader>

@@ -237,7 +237,7 @@ const CreatorDashboard = () => {
                 <Card key={comment.id} className="p-4">
                   <div className="flex items-start space-x-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={comment.profiles?.avatar_url || undefined} alt={comment.profiles?.first_name || 'Commenter'} />
+                      <AvatarImage src={comment.creator_profiles?.avatar_url || undefined} alt={comment.creator_profiles?.first_name || 'Commenter'} />
                       <AvatarFallback>
                         <LucideUser className="h-4 w-4 text-muted-foreground" />
                       </AvatarFallback>
@@ -245,7 +245,7 @@ const CreatorDashboard = () => {
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
                         <span className="font-semibold text-sm">
-                          {comment.profiles?.first_name} {comment.profiles?.last_name}
+                          {comment.creator_profiles?.first_name} {comment.creator_profiles?.last_name}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {new Date(comment.created_at).toLocaleString()}

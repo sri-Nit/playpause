@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 
 interface CommentWithProfile extends Comment {
-  profiles: Profile;
+  creator_profiles: Profile; // Use creator_profiles alias
   replies?: CommentWithProfile[]; // For nested replies
 }
 
@@ -85,7 +85,7 @@ const WatchVideo = () => {
         }
 
         setVideo(fetchedVideo);
-        setUploaderProfile(fetchedVideo.profiles || null);
+        setUploaderProfile(fetchedVideo.creator_profiles || null); // Use creator_profiles
 
         const fetchedLikes = await getLikesForVideo(id);
         setLikes(fetchedLikes.length);
@@ -237,7 +237,7 @@ const WatchVideo = () => {
       });
       if (updatedVideo) {
         setVideo(updatedVideo);
-        setUploaderProfile(updatedVideo.profiles || null);
+        setUploaderProfile(updatedVideo.creator_profiles || null); // Use creator_profiles
         toast.success('Video updated successfully!', { id: loadingToastId });
       }
     } catch (err: any) {
@@ -330,7 +330,7 @@ const WatchVideo = () => {
     commentList.map((comment) => (
       <div key={comment.id} className="flex items-start space-x-3">
         <Avatar className="h-8 w-8">
-          <AvatarImage src={comment.profiles?.avatar_url || undefined} alt={comment.profiles?.first_name || 'Commenter'} />
+          <AvatarImage src={comment.creator_profiles?.avatar_url || undefined} alt={comment.creator_profiles?.first_name || 'Commenter'} />
           <AvatarFallback>
             <LucideUser className="h-4 w-4 text-muted-foreground" />
           </AvatarFallback>
@@ -338,7 +338,7 @@ const WatchVideo = () => {
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <span className="font-semibold text-sm">
-              {comment.profiles?.first_name} {comment.profiles?.last_name}
+              {comment.creator_profiles?.first_name} {comment.creator_profiles?.last_name}
             </span>
             <span className="text-xs text-muted-foreground">
               {new Date(comment.created_at).toLocaleString()}
@@ -434,13 +434,13 @@ const WatchVideo = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-muted-foreground text-sm mb-4">
             <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline mb-2 sm:mb-0">
               <Avatar className="h-9 w-9">
-                <AvatarImage src={video.profiles?.avatar_url || undefined} alt={video.profiles?.first_name || 'Creator'} />
+                <AvatarImage src={video.creator_profiles?.avatar_url || undefined} alt={video.creator_profiles?.first_name || 'Creator'} />
                 <AvatarFallback>
                   <LucideUser className="h-5 w-5 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
               <p className="text-base font-medium">
-                {video.profiles ? `${video.profiles.first_name || ''} ${video.profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+                {video.creator_profiles ? `${video.creator_profiles.first_name || ''} ${video.creator_profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
               </p>
             </Link>
             <div className="flex items-center space-x-4">
@@ -494,18 +494,18 @@ const WatchVideo = () => {
 
         <div className="flex items-center space-x-4 py-4 border-b">
           <Avatar className="h-14 w-14">
-            <AvatarImage src={video.profiles?.avatar_url || undefined} alt={video.profiles?.first_name || 'Uploader'} />
+            <AvatarImage src={video.creator_profiles?.avatar_url || undefined} alt={video.creator_profiles?.first_name || 'Uploader'} />
             <AvatarFallback>
               <LucideUser className="h-7 w-7 text-muted-foreground" />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <Link to={`/profile/${video.user_id}`} className="font-semibold text-lg hover:underline">
-              {video.profiles ? `${video.profiles.first_name || ''} ${video.profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+              {video.creator_profiles ? `${video.creator_profiles.first_name || ''} ${video.creator_profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
             </Link>
             <p className="text-sm text-muted-foreground">Uploader</p>
           </div>
-          {!isOwner && user && video.profiles && (
+          {!isOwner && user && video.creator_profiles && (
             <>
               <Button 
                 variant={isFollowingUploader ? "secondary" : "default"} 
@@ -625,7 +625,7 @@ const WatchVideo = () => {
             <DialogDescription>
               Replying to a comment.
             </DialogDescription>
-          </DialogHeader>
+          </DialogDescription>
           <div className="grid gap-4 py-4">
             <Textarea
               placeholder="Write your reply..."
