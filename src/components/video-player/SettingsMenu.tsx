@@ -33,12 +33,14 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
   setSettingsView,
 }) => {
   return (
-    <div className="relative z-[99999]">
-      <DropdownMenu
-        onOpenChange={(open) => {
-          if (!open) setSettingsView('main');
-        }}
-      >
+    <div
+      className="relative z-[999999]"
+      style={{
+        position: 'relative',
+        pointerEvents: 'auto',
+      }}
+    >
+      <DropdownMenu onOpenChange={(open) => !open && setSettingsView('main')}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
@@ -50,15 +52,16 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
           </Button>
         </DropdownMenuTrigger>
 
-        {/* --- DropdownMenuContent --- */}
         <DropdownMenuContent
           forceMount
-          className="absolute w-48 bg-black/80 text-white border-none rounded-md z-[99999] p-1 shadow-lg backdrop-blur-sm"
-          side="top"             // makes it open upward
-          align="end"            // aligns to right of the icon (YouTube style)
-          sideOffset={12}        // small spacing between button and menu
-          collisionPadding={8}   // prevents clipping near edges
-          style={{ position: 'absolute' }}
+          className="fixed w-48 bg-black/80 text-white border-none rounded-md z-[999999] p-1 shadow-lg backdrop-blur-sm"
+          side="top"
+          align="end"
+          sideOffset={12}
+          collisionPadding={8}
+          style={{
+            position: 'fixed', // ✅ critical: stays within fullscreen
+          }}
         >
           {/* MAIN VIEW */}
           {settingsView === 'main' && (
@@ -77,7 +80,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   {playbackSpeed === 1.0 ? 'Normal' : `${playbackSpeed}x`}
                 </span>
               </DropdownMenuItem>
-
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
