@@ -46,7 +46,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
             variant="ghost"
             size="icon"
             className="text-white hover:bg-white/20 focus-visible:ring-0"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); console.log("Settings button clicked!"); }} // Added console.log
           >
             <Settings className="h-5 w-5" />
             <span className="sr-only">Video Settings</span>
@@ -72,6 +72,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
+                  e.stopPropagation(); // Stop propagation
                   setSettingsView('speed');
                 }}
                 className="flex justify-between items-center"
@@ -84,6 +85,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
+                  e.stopPropagation(); // Stop propagation
                   setSettingsView('quality');
                 }}
                 className="flex justify-between items-center"
@@ -102,7 +104,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 mr-2"
-                  onClick={() => setSettingsView('main')}
+                  onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }} // Stop propagation
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -119,6 +121,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   <DropdownMenuRadioItem
                     key={speed}
                     value={speed.toString()}
+                    onSelect={(e) => e.stopPropagation()} // Stop propagation
                   >
                     {speed === 1.0 ? 'Normal' : `${speed}x`}
                   </DropdownMenuRadioItem>
@@ -135,7 +138,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 mr-2"
-                  onClick={() => setSettingsView('main')}
+                  onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }} // Stop propagation
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -147,7 +150,11 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 onValueChange={handleQualityChange}
               >
                 {qualityOptions.map((quality) => (
-                  <DropdownMenuRadioItem key={quality} value={quality}>
+                  <DropdownMenuRadioItem
+                    key={quality}
+                    value={quality}
+                    onSelect={(e) => e.stopPropagation()} // Stop propagation
+                  >
                     {quality}
                   </DropdownMenuRadioItem>
                 ))}

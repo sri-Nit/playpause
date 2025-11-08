@@ -91,14 +91,16 @@ const VideoControls: React.FC<VideoControlsProps> = ({
         } z-50`}
       >
         {/* Progress Bar */}
-        <CustomSlider
-          value={[currentTime]}
-          max={duration}
-          step={0.1}
-          onValueChange={handleProgressChange}
-          className="w-full mb-2 cursor-pointer"
-          aria-label="Video progress"
-        />
+        <div onClick={(e) => e.stopPropagation()}> {/* Stop propagation for progress slider */}
+          <CustomSlider
+            value={[currentTime]}
+            max={duration}
+            step={0.1}
+            onValueChange={handleProgressChange}
+            className="w-full mb-2 cursor-pointer"
+            aria-label="Video progress"
+          />
+        </div>
 
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center space-x-3">
@@ -116,7 +118,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({
             </Button>
             
             {/* Volume control with always-visible slider */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}> {/* Stop propagation for volume slider */}
               <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:bg-white/20">
                 {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
