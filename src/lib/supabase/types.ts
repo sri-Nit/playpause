@@ -16,13 +16,13 @@ export interface Channel {
 
 export interface Video {
   id: string;
-  owner_id: string; // Changed from user_id to owner_id
+  owner_id: string;
   channel_id: string | null;
   title: string;
   description: string | null;
   tags: string[] | null;
   visibility: 'public' | 'unlisted' | 'private';
-  status: 'processing' | 'ready' | 'failed' | 'blocked' | 'draft'; // Updated status values
+  status: 'processing' | 'ready' | 'failed' | 'blocked' | 'draft';
   raw_path: string | null;
   hls_master_path: string | null;
   thumbnail_path: string | null;
@@ -30,7 +30,8 @@ export interface Video {
   size_bytes: number | null;
   created_at: string;
   updated_at: string;
-  profiles?: Profile; // Joined profile data
+  owner_profile?: Profile; // Added to include owner's profile directly with the video
+  channel?: Channel; // Added to include channel data
 }
 
 export interface VideoStats {
@@ -54,8 +55,7 @@ export interface Comment {
   user_id: string;
   text: string;
   created_at: string;
-  parent_comment_id: string | null; // Added parent_comment_id back
-  profiles?: Profile; // Joined profile data
+  user_profile?: Profile; // Updated to reflect new Profile structure
 }
 
 export interface Subscription {
@@ -80,7 +80,7 @@ export interface WatchHistory {
   video_id: string;
   watched_at: string;
   watch_seconds: number | null; // Added watch_seconds
-  videos?: Video; // Joined video data
+  video?: Video; // Updated to be optional and named 'video'
 }
 
 export interface Conversation {
@@ -90,8 +90,8 @@ export interface Conversation {
   status: 'pending' | 'accepted' | 'rejected' | 'blocked';
   created_at: string;
   last_message_at: string;
-  user1?: Profile; // Joined profile data for user1
-  user2?: Profile; // Joined profile data for user2
+  user1_profile?: Profile; // Updated to reflect new Profile structure
+  user2_profile?: Profile; // Updated to reflect new Profile structure
 }
 
 export interface Message {
@@ -101,5 +101,5 @@ export interface Message {
   text: string;
   created_at: string;
   is_read: boolean;
-  sender?: Profile; // Joined profile data for sender
+  sender_profile?: Profile; // Updated to reflect new Profile structure
 }

@@ -6,7 +6,7 @@ export const getProfileById = async (id: string): Promise<Profile | null> => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, display_name, created_at') // Updated to select new fields
+      .select('id, first_name, last_name, avatar_url, message_preference')
       .eq('id', id)
       .single();
 
@@ -21,6 +21,25 @@ export const getProfileById = async (id: string): Promise<Profile | null> => {
   }
 };
 
-// The updateProfileMessagePreference function has been removed as 'message_preference'
-// is no longer a column in the 'profiles' table according to the provided schema.
-// If this functionality is still desired, a new column would need to be added to the database.
+// Function to update a user's message preference.
+export const updateProfileMessagePreference = async (
+  userId: string,
+  preference: 'open' | 'requests' | 'blocked',
+): Promise<Profile | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ message_preference: preference })
+      .eq('id', userId)
+      .select('id, first_name, last_name, avatar_url, message_preference')
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data as Profile;
+  } catch (error) {
+    console.error('Error updating message preference:', error);
+    throw error;
+  }
+};
