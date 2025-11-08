@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Play,
   Pause,
@@ -41,13 +41,10 @@ interface VideoControlsProps {
 }
 
 /**
- * Updated VideoControls:
- * - Single gradient progress line (removed duplicate "two lines" look)
- * - Accessible invisible slider overlay for scrubbing (keeps keyboard + screen-reader support)
- * - Restyled rewind/forward buttons to be round, prominent, and consistent
- * - Improved volume rocker visuals (rounded pill track, cleaner spacing)
- *
- * Drop this file in place of your existing VideoControls.tsx
+ * Minimal change: white thin progress line (clean single line) + cute compact volume rocker.
+ * - Keeps the same API as before.
+ * - Uses CustomSlider with classNames "progress-slider" and "volume-slider".
+ * - Auto-hide logic retained.
  */
 const VideoControls: React.FC<VideoControlsProps> = ({
   isPlaying,
@@ -82,10 +79,56 @@ const VideoControls: React.FC<VideoControlsProps> = ({
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  // Auto-hide controls logic (2s)
+  const [localVisible, setLocalVisible] = useState(true);
+  const hideTimer = useRef<number | null>(null);
+
+  const showAndReset = () => {
+    setLocalVisible(true);
+    if (hideTimer.current) {
+      window.clearTimeout(hideTimer.current);
+    }
+    if (isPlaying && !videoEnded) {
+      hideTimer.current = window.setTimeout(() => {
+        setLocalVisible(false);
+        hideTimer.current = null;
+      }, 2000);
+    }
+  };
+
+  useEffect(() => {
+    if (!isPlaying || videoEnded) {
+      if (hideTimer.current) {
+        window.clearTimeout(hideTimer.current);
+        hideTimer.current = null;
+      }
+      setLocalVisible(true);
+      return;
+    }
+    showAndReset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPlaying, videoEnded]);
+
+  useEffect(() => {
+    const onActivity = () => showAndReset();
+    window.addEventListener('mousemove', onActivity);
+    window.addEventListener('touchstart', onActivity);
+    window.addEventListener('keydown', onActivity);
+    return () => {
+      window.removeEventListener('mousemove', onActivity);
+      window.removeEventListener('touchstart', onActivity);
+      window.removeEventListener('keydown', onActivity);
+      if (hideTimer.current) window.clearTimeout(hideTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const visible = showControls || localVisible || !isPlaying || videoEnded || isBuffering;
+
   return (
     <>
       {/* Play overlay */}
-      {(!isPlaying && showControls && !videoEnded && !isBuffering) && (
+      {(!isPlaying && visible && !videoEnded && !isBuffering) && (
         <div
           className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity duration-300 z-30"
           onClick={(e) => e.stopPropagation()}
@@ -93,7 +136,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20 w-20 h-20 rounded-full backdrop-blur-sm"
+            className="text-white hover:bg-white/20 w-20 h-20 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
               togglePlayPause();
@@ -106,14 +149,14 @@ const VideoControls: React.FC<VideoControlsProps> = ({
       )}
 
       {/* Replay overlay */}
-      {videoEnded && (
+      {videoEnded && visible && (
         <div
           className="absolute inset-0 flex items-center justify-center bg-black/70 transition-opacity duration-300 z-40"
           onClick={(e) => e.stopPropagation()}
         >
           <Button
             variant="ghost"
-            className="text-white hover:bg-white/20 w-32 h-32 rounded-full flex flex-col items-center justify-center backdrop-blur-sm"
+            className="text-white hover:bg-white/20 w-32 h-32 rounded-full flex flex-col items-center justify-center"
             onClick={(e) => {
               e.stopPropagation();
               replay();
@@ -129,108 +172,105 @@ const VideoControls: React.FC<VideoControlsProps> = ({
       {/* Controls bar */}
       <div
         className={`absolute inset-x-0 bottom-0 p-4 transition-opacity duration-300 ${
-          showControls || !isPlaying || videoEnded ? 'opacity-100' : 'opacity-0'
+          visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
         } z-50`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          showAndReset();
+        }}
+        onPointerEnter={() => {
+          if (hideTimer.current) {
+            window.clearTimeout(hideTimer.current);
+            hideTimer.current = null;
+          }
+          setLocalVisible(true);
+        }}
+        onPointerLeave={() => {
+          if (isPlaying && !videoEnded) showAndReset();
+        }}
       >
-        {/* Single gradient progress bar with invisible accessible slider on top */}
-        <div
-          className="relative w-full mb-3 h-4 select-none"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Visible gradient track */}
-          <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 h-1.5 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-150"
-              style={{
-                width: `${progressPct}%`,
-                background:
-                  'linear-gradient(90deg, #7c3aed 0%, #ec4899 50%, #f59e0b 100%)',
-              }}
-            />
-          </div>
-
-          {/* Visible scrub handle mark for visual cue (not functional by itself) */}
-          <div
-            className="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-lg"
-            style={{ right: `${100 - progressPct}%`, marginRight: '-8px' }}
-            aria-hidden
+        {/* White lined "normal" slider */}
+        <div className="relative w-full mb-3" onClick={(e) => e.stopPropagation()}>
+          <CustomSlider
+            value={[currentTime]}
+            max={duration}
+            step={0.1}
+            onValueChange={handleProgressChange}
+            className="w-full progress-slider"
+            aria-label="Video progress"
           />
 
-          {/* Invisible (but keyboard+pointer accessible) slider overlay */}
-          <div className="absolute inset-0">
-            <CustomSlider
-              value={[currentTime]}
-              max={duration}
-              step={0.1}
-              onValueChange={handleProgressChange}
-              className="w-full h-full opacity-0" // visually hidden but still interactive
-              aria-label="Video progress"
-            />
-          </div>
+          {/* subtle white progress fill behind track for extra clarity */}
+          <div
+            aria-hidden
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 h-[4px] rounded-full pointer-events-none"
+            style={{
+              width: `${progressPct}%`,
+              background: 'rgba(255,255,255,0.95)',
+              mixBlendMode: 'normal',
+              opacity: 0.18,
+            }}
+          />
         </div>
 
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center space-x-3">
-            {/* Rewind button - bigger, rounded, with subtle bg */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => { e.stopPropagation(); seek(-5); }}
-              className="text-white bg-white/2 hover:bg-white/6 w-10 h-10 rounded-full flex items-center justify-center transition"
+              onClick={(e) => { e.stopPropagation(); seek(-5); showAndReset(); }}
+              className="text-white hover:bg-white/6 w-10 h-10 rounded-full flex items-center justify-center"
+              title="Rewind 5s"
             >
               <ChevronsLeft className="h-5 w-5" />
               <span className="sr-only">Rewind 5 seconds</span>
             </Button>
 
-            {/* Play/Pause - more prominent circular control */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => { e.stopPropagation(); togglePlayPause(); }}
-              className="text-white hover:bg-white/10 w-10 h-10 rounded-full flex items-center justify-center"
+              onClick={(e) => { e.stopPropagation(); togglePlayPause(); showAndReset(); }}
+              className="text-white hover:bg-white/6 w-11 h-11 rounded-full flex items-center justify-center"
               aria-pressed={isPlaying}
             >
               {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
             </Button>
 
-            {/* Fast-forward button - symmetric to rewind */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => { e.stopPropagation(); seek(5); }}
-              className="text-white bg-white/2 hover:bg-white/6 w-10 h-10 rounded-full flex items-center justify-center transition"
+              onClick={(e) => { e.stopPropagation(); seek(5); showAndReset(); }}
+              className="text-white hover:bg-white/6 w-10 h-10 rounded-full flex items-center justify-center"
+              title="Forward 5s"
             >
               <ChevronsRight className="h-5 w-5" />
               <span className="sr-only">Fast forward 5 seconds</span>
             </Button>
 
-            {/* Volume rocker */}
+            {/* Cute compact volume rocker */}
             <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                className="text-white hover:bg-white/6 w-9 h-9 rounded-full flex items-center justify-center"
+                onClick={(e) => { e.stopPropagation(); toggleMute(); showAndReset(); }}
+                className="text-white w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/6"
                 aria-pressed={isMuted}
+                title={isMuted ? 'Unmute' : 'Mute'}
               >
                 {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
               </Button>
 
-              {/* Styled pill surrounding the slider for better UX */}
-              <div className="w-28 bg-white/3 rounded-full px-2 py-1 flex items-center">
-                <div className="flex-1">
-                  <CustomSlider
-                    value={[isMuted ? 0 : volume * 100]}
-                    max={100}
-                    step={1}
-                    onValueChange={(value) => setVolume(value[0] / 100)}
-                    className="w-full h-5" // depends on your CustomSlider implementation; adjust if needed
-                    aria-label="Volume control"
-                  />
-                </div>
+              <div className="w-28 flex items-center">
+                <CustomSlider
+                  value={[isMuted ? 0 : volume * 100]}
+                  max={100}
+                  step={1}
+                  onValueChange={(value) => { setVolume(value[0] / 100); showAndReset(); }}
+                  className="w-full volume-slider"
+                  aria-label="Volume control"
+                />
               </div>
             </div>
 
@@ -246,8 +286,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({
               </div>
             )}
 
-            {/* SettingsMenu is in-place so it will remain visible in fullscreen */}
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={(e) => { e.stopPropagation(); showAndReset(); }}>
               <SettingsMenu
                 playbackSpeed={playbackSpeed}
                 setPlaybackSpeed={setPlaybackSpeed}
@@ -261,8 +300,8 @@ const VideoControls: React.FC<VideoControlsProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => { e.stopPropagation(); handleFullScreenToggle(); }}
-              className="text-white hover:bg-white/10 w-9 h-9 rounded-full"
+              onClick={(e) => { e.stopPropagation(); handleFullScreenToggle(); showAndReset(); }}
+              className="text-white w-9 h-9 rounded-full hover:bg-white/6"
             >
               {isFullScreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
               <span className="sr-only">{isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
@@ -272,10 +311,84 @@ const VideoControls: React.FC<VideoControlsProps> = ({
       </div>
 
       <style>{`
-        /* small helper styles to ensure consistent look for the custom parts */
-        .bg-white\\/2 { background-color: rgba(255,255,255,0.02); }
-        .bg-white\\/3 { background-color: rgba(255,255,255,0.03); }
-        .bg-white\\/6 { background-color: rgba(255,255,255,0.06); }
+        /* White lined progress slider (normal/thin) */
+        .progress-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 18px;
+          background: transparent;
+          position: relative;
+          z-index: 30;
+        }
+        .progress-slider::-webkit-slider-runnable-track {
+          height: 4px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.12);
+        }
+        .progress-slider::-moz-range-track {
+          height: 4px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.12);
+        }
+        .progress-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 12px;
+          height: 12px;
+          border-radius: 999px;
+          background: #fff;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+          margin-top: -4px;
+          border: 2px solid rgba(255,255,255,0.95);
+        }
+        .progress-slider::-moz-range-thumb {
+          width: 12px;
+          height: 12px;
+          border-radius: 999px;
+          background: #fff;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+          border: none;
+        }
+
+        /* Cute compact volume slider */
+        .volume-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 12px;
+          background: transparent;
+        }
+        .volume-slider::-webkit-slider-runnable-track {
+          height: 6px;
+          border-radius: 999px;
+          background: linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
+        }
+        .volume-slider::-moz-range-track {
+          height: 6px;
+          border-radius: 999px;
+          background: linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
+        }
+        .volume-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          background: #fff;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+          margin-top: -2px;
+          border: 1px solid rgba(0,0,0,0.08);
+        }
+        .volume-slider::-moz-range-thumb {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          background: #fff;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+          border: none;
+        }
+
+        /* helpers */
+        .hover\\:bg-white\\/6:hover { background-color: rgba(255,255,255,0.06); }
       `}</style>
     </>
   );
