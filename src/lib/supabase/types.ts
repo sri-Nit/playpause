@@ -65,6 +65,12 @@ export interface Comment {
   creator_profiles?: Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>; // Embedded profile with alias
 }
 
+// Moved from WatchVideo.tsx and made creator_profiles more precise
+export interface CommentWithProfile extends Comment {
+  creator_profiles: Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>;
+  replies?: CommentWithProfile[]; // For nested replies
+}
+
 export interface Subscription {
   id: string;
   follower_id: string;

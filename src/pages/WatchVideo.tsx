@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getVideoById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory, getOrCreateConversation } from '@/lib/video-store';
+import { getVideoById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory, getOrCreateConversation, CommentWithProfile } from '@/lib/video-store'; // Import CommentWithProfile
 import CustomVideoPlayer from '@/components/CustomVideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -12,11 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-
-interface CommentWithProfile extends Comment {
-  creator_profiles: Profile; // Use creator_profiles alias
-  replies?: CommentWithProfile[]; // For nested replies
-}
 
 const WatchVideo = () => {
   const { id } = useParams<{ id: string }>();
@@ -100,15 +95,23 @@ const WatchVideo = () => {
         const fetchedComments = await getCommentsForVideo(id);
         const commentMap = new Map<string, CommentWithProfile>();
         fetchedComments.forEach(comment => {
-          commentMap.set(comment.id, { ...comment, replies: [] });
+          // Ensure creator_profiles is present before casting
+          if (comment.creator_profiles) {
+            commentMap.set(comment.id, { ...comment, creator_profiles: comment.creator_profiles, replies: [] });
+          } else {
+            console.warn(`Comment ${comment.id} is missing creator_profiles.`);
+            // Handle case where creator_profiles might be missing, e.g., provide a default or filter out
+          }
         });
 
         const rootComments: CommentWithProfile[] = [];
         fetchedComments.forEach(comment => {
-          if (comment.parent_comment_id && commentMap.has(comment.parent_comment_id)) {
-            commentMap.get(comment.parent_comment_id)?.replies?.push(commentMap.get(comment.id)!);
-          } else {
-            rootComments.push(commentMap.get(comment.id)!);
+          if (comment.creator_profiles) { // Only process if creator_profiles is present
+            if (comment.parent_comment_id && commentMap.has(comment.parent_comment_id)) {
+              commentMap.get(comment.parent_comment_id)?.replies?.push(commentMap.get(comment.id)!);
+            } else {
+              rootComments.push(commentMap.get(comment.id)!);
+            }
           }
         });
         setComments(rootComments);
@@ -326,8 +329,8 @@ const WatchVideo = () => {
     }
   };
 
-  const renderComments = (commentList: CommentWithProfile[]) => (
-    commentList.map((comment) => (
+  const renderComments = (commentList: CommentWithProfile[]): JSX.Element[] => {
+    return commentList.map((comment) => (
       <div key={comment.id} className="flex items-start space-x-3">
         <Avatar className="h-8 w-8">
           <AvatarImage src={comment.creator_profiles?.avatar_url || undefined} alt={comment.creator_profiles?.first_name || 'Commenter'} />
@@ -364,8 +367,8 @@ const WatchVideo = () => {
           )}
         </div>
       </div>
-    ))
-  );
+    ));
+  };
 
   if (isLoading) {
     return <div className="text-center text-muted-foreground py-10">Loading video...</div>;
@@ -625,7 +628,7 @@ const WatchVideo = () => {
             <DialogDescription>
               Replying to a comment.
             </DialogDescription>
-          </DialogDescription>
+          </DialogHeader>
           <div className="grid gap-4 py-4">
             <Textarea
               placeholder="Write your reply..."
