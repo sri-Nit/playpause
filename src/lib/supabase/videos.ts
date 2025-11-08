@@ -6,7 +6,7 @@ export const getVideos = async (): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .eq('status', 'published')
       .order('created_at', { ascending: false });
 
@@ -26,7 +26,7 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -60,7 +60,7 @@ export const addVideoMetadata = async (
         status: initialStatus, // Use the provided initialStatus
         duration: newVideo.duration,
       })
-      .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .single();
 
     if (error) {
@@ -79,7 +79,7 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .eq('id', id)
       .single();
 
@@ -101,7 +101,7 @@ export const updateVideoMetadata = async (videoId: string, updatedFields: Partia
       .from('videos')
       .update(updatedFields)
       .eq('id', videoId)
-      .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .single();
 
     if (error) {
@@ -122,7 +122,7 @@ export const updateVideoStatus = async (videoId: string, status: 'draft' | 'publ
       .from('videos')
       .update({ status: status })
       .eq('id', videoId)
-      .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .single();
 
     if (error) {
@@ -159,7 +159,7 @@ export const searchVideos = async (query: string): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
       .from('videos')
-      .select('*, profiles(first_name, last_name, avatar_url)') // Join profiles
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .eq('status', 'published')
       .or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
       .order('created_at', { ascending: false });
