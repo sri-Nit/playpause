@@ -12,12 +12,10 @@ interface SettingsMenuProps {
 }
 
 /**
- * Crazy-styled in-place Settings menu (no portal, no external dropdown lib).
- * - Always rendered as a descendant (absolute) so it stays inside fullscreen
- * - Glassmorphism + scale/opacity animations
- * - Keyboard accessible basics + click outside to close
- *
- * This intentionally DOES NOT create new folders or external dependencies.
+ * In-place SettingsMenu (cute + compact).
+ * - Renders as a child (no portal) so it stays inside fullscreen
+ * - click outside, Escape to close
+ * - small, rounded, glass/blur style to match the controls
  */
 const playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 const qualityOptions = ['Auto', '1080p', '720p', '480p'];
@@ -33,7 +31,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-  // Close on outside click
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       if (!wrapperRef.current) return;
@@ -42,23 +39,27 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
         setSettingsView('main');
       }
     }
-    if (open) document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open, setSettingsView]);
-
-  // Close on Escape
-  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         setOpen(false);
         setSettingsView('main');
       }
     }
-    if (open) document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    if (open) {
+      document.addEventListener('mousedown', onDoc);
+      document.addEventListener('keydown', onKey);
+    }
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
   }, [open, setSettingsView]);
 
-  // Helper to toggle and ensure main view reset when closing
+  // If parent switches to a sub-view, ensure menu opens
+  useEffect(() => {
+    if (settingsView !== 'main') setOpen(true);
+  }, [settingsView]);
+
   function toggleOpen(e?: React.MouseEvent) {
     e?.stopPropagation();
     setOpen((o) => {
@@ -68,22 +69,17 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
     });
   }
 
-  // When parent controls view externally, keep menu open (common pattern).
-  useEffect(() => {
-    // if parent switches to subview, open menu automatically
-    if (settingsView !== 'main') setOpen(true);
-  }, [settingsView]);
-
   return (
     <div
       ref={wrapperRef}
       className="relative"
-      onClick={(e) => e.stopPropagation()} // ensure clicks inside don't bubble to player
+      onClick={(e) => e.stopPropagation()}
+      aria-hidden={false}
     >
       <Button
         variant="ghost"
         size="icon"
-        className="text-white hover:bg-white/20 focus-visible:ring-0 transition-transform active:scale-95"
+        className="text-white hover:bg-white/10 focus-visible:ring-0 transition-transform active:scale-95"
         onClick={toggleOpen}
         aria-haspopup="true"
         aria-expanded={open}
@@ -92,21 +88,15 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
         <span className="sr-only">Video Settings</span>
       </Button>
 
-      {/* Menu: absolutely positioned and animated. Keeps inside the player subtree. */}
       {open && (
         <div
           role="menu"
           aria-label="Video settings"
-          className="absolute right-0 bottom-12 w-56 bg-[rgba(10,10,10,0.6)] border border-white/8 rounded-lg p-2 shadow-2xl backdrop-blur-md text-white transform origin-bottom-right
-                     animate-scale-in"
-          style={{
-            // small inline style to ensure pointer events enabled
-            pointerEvents: 'auto',
-          }}
+          className="absolute right-0 bottom-12 w-48 bg-[rgba(20,20,20,0.7)] border border-white/6 rounded-lg p-2 shadow-2xl backdrop-blur-md text-white transform origin-bottom-right"
           onClick={(e) => e.stopPropagation()}
+          style={{ pointerEvents: 'auto' }}
         >
-          {/* Fancy arrow pointer */}
-          <div className="absolute right-4 -bottom-2 w-4 h-4 bg-[rgba(10,10,10,0.6)] rotate-45 border border-white/8"></div>
+          <div className="absolute right-4 -bottom-2 w-3 h-3 bg-[rgba(20,20,20,0.7)] rotate-45 border border-white/6" />
 
           {/* MAIN VIEW */}
           {settingsView === 'main' && (
@@ -117,22 +107,18 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 className="flex items-center justify-between px-2 py-2 rounded hover:bg-white/5 transition-colors"
                 onClick={() => setSettingsView('speed')}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">Playback Speed</span>
-                </div>
-                <div className="text-xs text-muted-foreground">
+                <span className="text-sm">Playback Speed</span>
+                <span className="text-xs text-muted-foreground">
                   {playbackSpeed === 1 ? 'Normal' : `${playbackSpeed}x`}
-                </div>
+                </span>
               </button>
 
               <button
                 className="flex items-center justify-between px-2 py-2 rounded hover:bg-white/5 transition-colors"
                 onClick={() => setSettingsView('quality')}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">Quality</span>
-                </div>
-                <div className="text-xs text-muted-foreground">{currentQuality}</div>
+                <span className="text-sm">Quality</span>
+                <span className="text-xs text-muted-foreground">{currentQuality}</span>
               </button>
             </div>
           )}
@@ -212,16 +198,8 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
           )}
         </div>
       )}
-
       <style>{`
-        /* tiny keyframe for scale-in effect */
-        @keyframes scaleIn {
-          from { opacity: 0; transform: scale(.92); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-        .animate-scale-in {
-          animation: scaleIn 140ms cubic-bezier(.2,.9,.3,1);
-        }
+        .text-muted-foreground { color: rgba(255,255,255,0.78); }
       `}</style>
     </div>
   );
