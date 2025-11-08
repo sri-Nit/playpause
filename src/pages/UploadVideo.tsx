@@ -71,14 +71,14 @@ const UploadVideo = () => {
     }
   };
 
-  const onSubmit = async (values: z.infer<typeof formSchema>, initialStatus: 'draft' | 'processing') => {
+  const onSubmit = async (values: z.infer<typeof formSchema>, status: 'draft' | 'published') => {
     if (!user) {
       toast.error('You must be logged in to upload a video.');
       return;
     }
 
     setIsUploading(true);
-    const loadingToastId = toast.loading(initialStatus === 'processing' ? 'Uploading video for processing...' : 'Saving video as draft...');
+    const loadingToastId = toast.loading(status === 'published' ? 'Uploading video...' : 'Saving video as draft...');
 
     try {
       const videoFile = values.videoFile[0];
@@ -107,11 +107,11 @@ const UploadVideo = () => {
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
         tags: videoTags,
-        duration: values.duration || null,
-      }, user.id, initialStatus); // Pass initialStatus here
+        duration: values.duration || null, // Pass duration
+      }, user.id, status); // Pass status here
 
       if (addedVideo) {
-        toast.success(initialStatus === 'processing' ? 'Video uploaded! It will be available after processing.' : 'Video saved as draft!', { id: loadingToastId });
+        toast.success(status === 'published' ? 'Video uploaded successfully!' : 'Video saved as draft!', { id: loadingToastId });
         form.reset();
         navigate('/dashboard'); // Redirect to dashboard after upload/draft
       } else {
@@ -135,7 +135,7 @@ const UploadVideo = () => {
       <h1 className="text-3xl font-bold mb-6 text-center">Upload Your Video</h1>
       <div className="max-w-2xl mx-auto bg-card p-6 rounded-lg shadow-md">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((values) => onSubmit(values, 'processing'))} className="space-y-6">
+          <form onSubmit={form.handleSubmit((values) => onSubmit(values, 'published'))} className="space-y-6">
             <FormField
               control={form.control}
               name="title"

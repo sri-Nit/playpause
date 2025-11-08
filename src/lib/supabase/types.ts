@@ -10,7 +10,7 @@ export interface Video {
   created_at: string;
   views: number;
   tags: string[] | null;
-  status: 'draft' | 'published' | 'processing' | 'blocked'; // Added 'processing' and 'blocked'
+  status: 'draft' | 'published';
   duration: number | null;
   profiles?: Profile; // Added to include creator's profile directly with the video
 }

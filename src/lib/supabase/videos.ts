@@ -21,7 +21,7 @@ export const getVideos = async (): Promise<Video[]> => {
   }
 };
 
-// Function to get all videos for a specific creator (including drafts and processing)
+// Function to get all videos for a specific creator (including drafts)
 export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
   try {
     const { data, error } = await supabase
@@ -42,11 +42,7 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
 };
 
 // Function to add a new video to Supabase (metadata only, files handled separately)
-export const addVideoMetadata = async (
-  newVideo: Omit<Video, 'id' | 'created_at' | 'user_id' | 'views' | 'status' | 'profiles'>,
-  userId: string,
-  initialStatus: 'draft' | 'published' | 'processing' = 'processing' // Default to 'processing'
-): Promise<Video | null> => {
+export const addVideoMetadata = async (newVideo: Omit<Video, 'id' | 'created_at' | 'user_id' | 'views' | 'status' | 'profiles'>, userId: string, status: 'draft' | 'published' = 'published'): Promise<Video | null> => {
   try {
     const { data, error } = await supabase
       .from('videos')
@@ -57,7 +53,7 @@ export const addVideoMetadata = async (
         video_url: newVideo.video_url,
         thumbnail_url: newVideo.thumbnail_url,
         tags: newVideo.tags,
-        status: initialStatus, // Use the provided initialStatus
+        status: status,
         duration: newVideo.duration,
       })
       .select('*, profiles(first_name, last_name, avatar_url)') // Select with join for consistency
@@ -116,7 +112,7 @@ export const updateVideoMetadata = async (videoId: string, updatedFields: Partia
 };
 
 // Function to update video status
-export const updateVideoStatus = async (videoId: string, status: 'draft' | 'published' | 'processing' | 'blocked'): Promise<Video | null> => {
+export const updateVideoStatus = async (videoId: string, status: 'draft' | 'published'): Promise<Video | null> => {
   try {
     const { data, error } = await supabase
       .from('videos')
