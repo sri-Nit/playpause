@@ -35,9 +35,9 @@ const SearchResults = () => {
           return likesB - likesA; // Descending order for popularity
         });
       } else if (sortOrder === 'duration_asc') {
-        fetchedVideos.sort((a, b) => (a.duration || 0) - (b.duration || 0)); // Ascending duration
+        fetchedVideos.sort((a, b) => (a.duration_seconds || 0) - (b.duration_seconds || 0)); // Ascending duration
       } else if (sortOrder === 'duration_desc') {
-        fetchedVideos.sort((a, b) => (b.duration || 0) - (a.duration || 0)); // Descending duration
+        fetchedVideos.sort((a, b) => (b.duration_seconds || 0) - (a.duration_seconds || 0)); // Descending duration
       } else { // 'latest' is default and already handled by searchVideos
         // No additional client-side sort needed as searchVideos already orders by created_at DESC
       }
@@ -56,7 +56,7 @@ const SearchResults = () => {
   }, [fetchSearchResults]);
 
   if (isLoading) {
-    return <div className="text-center text-muted-foreground">Searching for "{query}"...</div>;
+    return <div className="text-center text-muted-foreground py-10">Searching for "{query}"...</div>;
   }
 
   if (error) {
@@ -64,16 +64,16 @@ const SearchResults = () => {
   }
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 bg-background">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-center">Search Results for "{query}"</h1>
+        <h1 className="text-3xl font-bold text-center text-foreground">Search Results for "{query}"</h1>
         <div className="flex items-center space-x-2">
           <span className="text-muted-foreground text-sm">Sort by:</span>
           <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-card text-foreground border-border">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-card text-foreground border-border">
               <SelectItem value="latest">Latest</SelectItem>
               <SelectItem value="popular">Popularity</SelectItem>
               <SelectItem value="duration_asc">Duration (Shortest First)</SelectItem>
@@ -84,7 +84,7 @@ const SearchResults = () => {
       </div>
 
       {videos.length === 0 ? (
-        <div className="text-center text-muted-foreground">
+        <div className="text-center text-muted-foreground py-10">
           No videos found matching "{query}".
         </div>
       ) : (

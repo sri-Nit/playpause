@@ -104,7 +104,7 @@ const CreatorProfilePage = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 max-w-4xl flex items-center justify-center h-[calc(100vh-140px)]">
+      <div className="container mx-auto p-4 max-w-4xl flex items-center justify-center h-[calc(100vh-140px)] bg-background">
         <p className="text-lg text-muted-foreground">Loading creator profile...</p>
       </div>
     );
@@ -112,7 +112,7 @@ const CreatorProfilePage = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto p-4 max-w-4xl flex items-center justify-center h-[calc(100vh-140px)]">
+      <div className="container mx-auto p-4 max-w-4xl flex items-center justify-center h-[calc(100vh-140px)] bg-background">
         <div className="text-center text-destructive-foreground bg-destructive/10 border border-destructive p-6 rounded-md">
           <h3 className="text-xl font-semibold mb-2">Error</h3>
           <p>{error}</p>
@@ -123,7 +123,7 @@ const CreatorProfilePage = () => {
 
   if (!creatorProfile) {
     return (
-      <div className="container mx-auto p-4 max-w-4xl flex items-center justify-center h-[calc(100vh-140px)]">
+      <div className="container mx-auto p-4 max-w-4xl flex items-center justify-center h-[calc(100vh-140px)] bg-background">
         <p className="text-lg text-muted-foreground">Creator profile not found.</p>
       </div>
     );
@@ -132,17 +132,17 @@ const CreatorProfilePage = () => {
   const isOwnProfile = user && user.id === creatorProfile.id;
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <Card className="mb-8 shadow-lg border-none">
+    <div className="container mx-auto p-4 max-w-4xl bg-background">
+      <Card className="mb-8 shadow-lg border-border bg-card">
         <CardContent className="p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start space-y-6 sm:space-y-0 sm:space-x-8">
-          <Avatar className="h-28 w-28 sm:h-32 sm:w-32 border-2 border-primary/50">
+          <Avatar className="h-28 w-28 sm:h-32 sm:w-32 border-2 border-accent/50">
             <AvatarImage src={creatorProfile.avatar_url || undefined} alt={creatorProfile.first_name || 'Creator'} />
             <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
               <LucideUser className="h-16 w-16" />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 text-center sm:text-left">
-            <CardTitle className="text-4xl font-extrabold leading-tight mb-2">
+            <CardTitle className="text-4xl font-extrabold leading-tight mb-2 text-foreground">
               {creatorProfile.first_name} {creatorProfile.last_name}
             </CardTitle>
             <CardDescription className="text-lg text-muted-foreground mt-1">
@@ -159,14 +159,14 @@ const CreatorProfilePage = () => {
                   variant={isFollowingCreator ? "secondary" : "default"}
                   onClick={handleFollowToggle}
                   disabled={isSubscribing}
-                  className="min-w-[120px]"
+                  className={`min-w-[120px] transition-all duration-200 ${isFollowingCreator ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80' : 'bg-accent text-accent-foreground hover:bg-accent/90 hover:scale-[1.03]'}`}
                 >
                   {isSubscribing ? '...' : isFollowingCreator ? <><Check className="mr-2 h-4 w-4" /> Joined Crew</> : <><Plus className="mr-2 h-4 w-4" /> Join Crew</>}
                 </Button>
               </div>
             )}
             {isOwnProfile && (
-              <Button className="mt-6" onClick={() => navigate('/dashboard')}>
+              <Button className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90 transition-colors duration-200 hover:scale-[1.03]" onClick={() => navigate('/dashboard')}>
                 <VideoIcon className="mr-2 h-4 w-4" /> Go to My Dashboard
               </Button>
             )}
@@ -174,16 +174,16 @@ const CreatorProfilePage = () => {
         </CardContent>
       </Card>
 
-      <h2 className="text-3xl font-bold mb-6 mt-10 text-center sm:text-left">
+      <h2 className="text-3xl font-bold mb-6 mt-10 text-center sm:text-left text-foreground">
         Published Videos by {creatorProfile.first_name}
       </h2>
       {creatorVideos.length === 0 ? (
-        <div className="text-center text-muted-foreground py-16 border border-dashed rounded-lg bg-muted/20">
+        <div className="text-center text-muted-foreground py-16 border border-dashed border-border rounded-lg bg-secondary/20">
           <p className="text-lg">
             {isOwnProfile ? "You haven't published any videos yet." : "This creator hasn't published any videos yet."}
           </p>
           {isOwnProfile && (
-            <Button onClick={() => navigate('/upload')} className="mt-6">
+            <Button onClick={() => navigate('/upload')} className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90 transition-colors duration-200 hover:scale-[1.03]">
               <Plus className="mr-2 h-4 w-4" /> Upload Your First Video
             </Button>
           )}

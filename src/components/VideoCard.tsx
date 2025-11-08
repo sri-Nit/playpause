@@ -16,7 +16,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
 
   return (
     <Link to={`/watch/${video.id}`} className="block">
-      <Card className="cursor-pointer hover:shadow-lg transition-shadow duration-200">
+      <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.03] border-border bg-card">
         <CardContent className="p-0">
           <AspectRatio ratio={16 / 9}>
             <img
@@ -30,13 +30,13 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
           </AspectRatio>
         </CardContent>
         <CardHeader className="p-4">
-          <CardTitle className="text-lg font-semibold line-clamp-2 mb-1">{video.title}</CardTitle>
+          <CardTitle className="text-lg font-semibold line-clamp-2 mb-1 text-foreground">{video.title}</CardTitle>
           <div className="flex items-center justify-between text-sm text-muted-foreground mt-1">
-            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline">
+            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline hover:text-foreground transition-colors duration-200">
               <Avatar className="h-6 w-6">
                 <AvatarImage src={creatorProfile?.avatar_url || undefined} alt={creatorProfile?.first_name || 'Creator'} />
-                <AvatarFallback>
-                  <LucideUser className="h-3 w-3 text-muted-foreground" />
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  <LucideUser className="h-3 w-3" />
                 </AvatarFallback>
               </Avatar>
               <CardDescription className="text-sm text-muted-foreground">

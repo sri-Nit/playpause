@@ -12,13 +12,13 @@ interface CustomVideoPlayerProps {
   videoId: string;
 }
 
-const CustomVideoPlayer = ({ // Removed React.FC<CustomVideoPlayerProps>
+const CustomVideoPlayer = ({
   videoUrl,
   title,
   thumbnailUrl,
   onProgressThresholdMet,
   videoId,
-}: CustomVideoPlayerProps) => { // Added type annotation to parameters
+}: CustomVideoPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
@@ -191,7 +191,7 @@ const CustomVideoPlayer = ({ // Removed React.FC<CustomVideoPlayerProps>
       {/* Loading Spinner Overlay */}
       {isBuffering && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 transition-opacity duration-300 z-40">
-          <Loader2 className="h-12 w-12 animate-spin text-white" />
+          <Loader2 className="h-12 w-12 animate-spin text-accent" /> {/* Changed text-white to text-accent */}
           <span className="sr-only">Loading video...</span>
         </div>
       )}

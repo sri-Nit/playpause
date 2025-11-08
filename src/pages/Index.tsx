@@ -26,7 +26,7 @@ const Index = () => {
   }, []); // No dependencies needed as sorting is removed
 
   if (isLoading) {
-    return <div className="text-center text-muted-foreground">Loading videos...</div>;
+    return <div className="text-center text-muted-foreground py-10">Loading videos...</div>;
   }
 
   if (error) {
@@ -34,14 +34,14 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 bg-background">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-center">Explore Videos</h1>
+        <h1 className="text-3xl font-bold text-center text-foreground">Explore Videos</h1>
         {/* Sorting functionality removed from home page */}
       </div>
 
       {videos.length === 0 ? (
-        <div className="text-center text-muted-foreground">
+        <div className="text-center text-muted-foreground py-10">
           No videos uploaded yet. Go to "Upload Video" to add some!
         </div>
       ) : (
