@@ -37,14 +37,36 @@ const WatchVideo = () => {
 
   const handleVideoProgressThresholdMet = useCallback(async (videoId: string) => {
     const viewKey = `video_viewed_50_${videoId}`;
+    console.log(`[WatchVideo] handleVideoProgressThresholdMet called for videoId: ${videoId}`);
+    console.log(`[WatchVideo] User: ${user ? user.id : 'Not authenticated'}`);
+    console.log(`[WatchVideo] Video status: ${video?.status}`);
+
     if (!sessionStorage.getItem(viewKey)) {
+      console.log(`[WatchVideo] View threshold met for videoId: ${videoId}. Incrementing view.`);
       if (video?.status === 'published') { // Only increment views for published videos
-        await incrementVideoView(videoId);
+        try {
+          await incrementVideoView(videoId);
+          console.log(`[WatchVideo] View incremented successfully for videoId: ${videoId}`);
+        } catch (err: any) {
+          console.error(`[WatchVideo] Failed to increment view for videoId: ${videoId}`, err);
+          toast.error(`Failed to increment view: ${err.message}`);
+        }
+      } else {
+        console.log(`[WatchVideo] View not incremented: Video status is not 'published' (${video?.status}).`);
       }
       if (user) {
-        await addVideoToHistory(user.id, videoId);
+        try {
+          await addVideoToHistory(user.id, videoId);
+          console.log(`[WatchVideo] Video added to history for user: ${user.id}`);
+        } catch (err: any) {
+          console.error(`[WatchVideo] Failed to add video to history for user: ${user.id}`, err);
+          toast.error(`Failed to add to history: ${err.message}`);
+        }
       }
       sessionStorage.setItem(viewKey, 'true');
+      console.log(`[WatchVideo] sessionStorage key '${viewKey}' set.`);
+    } else {
+      console.log(`[WatchVideo] View already incremented for videoId: ${videoId} in this session.`);
     }
   }, [user, video?.status]);
 

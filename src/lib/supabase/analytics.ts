@@ -5,12 +5,12 @@ export const incrementVideoView = async (videoId: string) => {
   try {
     const { data, error } = await supabase.rpc('increment_video_view', { video_id_param: videoId });
     if (error) {
-      console.error('Error incrementing view count:', error);
-      throw new Error(error.message);
+      console.error('Error incrementing view count via RPC:', error);
+      throw new Error(`Supabase RPC error: ${error.message} (Code: ${error.code})`);
     }
     return data;
   } catch (error) {
-    console.error('Unexpected error incrementing view count:', error);
+    console.error('Unexpected error in incrementVideoView:', error);
     throw error;
   }
 };
