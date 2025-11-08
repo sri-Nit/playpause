@@ -66,7 +66,7 @@ export const getFollowing = async (followerId: string): Promise<Subscription[]> 
   try {
     const { data, error } = await supabase
       .from('subscriptions')
-      .select('*')
+      .select('*, profiles!subscriptions_following_id_fkey(username, display_name)') // Updated to select new profile fields
       .eq('follower_id', followerId);
 
     if (error) {
@@ -85,7 +85,7 @@ export const getFollowers = async (followingId: string): Promise<Subscription[]>
   try {
     const { data, error } = await supabase
       .from('subscriptions')
-      .select('*')
+      .select('*, profiles!subscriptions_follower_id_fkey(username, display_name)') // Updated to select new profile fields
       .eq('following_id', followingId);
 
     if (error) {
@@ -120,7 +120,7 @@ export const getSubscribedChannelVideos = async (userId: string): Promise<Video[
 
     const { data: videos, error: videoError } = await supabase
       .from('videos')
-      .select('*')
+      .select('*, profiles(username, display_name)') // Updated to select new profile fields
       .in('user_id', followingIds)
       .eq('status', 'published')
       .order('created_at', { ascending: false });
