@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Search, Bell, User, LogOut, Settings, LayoutDashboard, Users, MessageSquare } from 'lucide-react'; // Added MessageSquare icon
+import { Upload, Search, Bell, User, LogOut, Settings, LayoutDashboard, Users } from 'lucide-react';
 import { useSession } from './SessionContextProvider';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -82,16 +82,6 @@ const Header = () => {
             <Bell className="h-4 w-4" />
             <span className="sr-only">Notifications</span>
           </Button>
-
-          {/* Message Icon */}
-          {user && (
-            <Link to="/messages">
-              <Button variant="ghost" size="icon">
-                <MessageSquare className="h-4 w-4" />
-                <span className="sr-only">Messages</span>
-              </Button>
-            </Link>
-          )}
 
           {isLoading ? (
             <Button variant="ghost" size="icon" disabled>

@@ -7,4 +7,3 @@ export * from './supabase/subscriptions';
 export * from './supabase/reports';
 export * from './supabase/analytics';
 export * from './supabase/watch-history';
-export * from './supabase/messaging';

@@ -8,14 +8,13 @@ import {
   isFollowing,
   addSubscription,
   removeSubscription,
-  getOrCreateConversation,
   Profile,
   Video,
 } from '@/lib/video-store';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { User as LucideUser, Plus, Check, MessageSquare, VideoIcon } from 'lucide-react';
+import { User as LucideUser, Plus, Check, VideoIcon } from 'lucide-react';
 import VideoCard from '@/components/VideoCard';
 
 const CreatorProfilePage = () => {
@@ -103,39 +102,6 @@ const CreatorProfilePage = () => {
     }
   };
 
-  const handleInitiateMessage = async () => {
-    if (!user) {
-      toast.error('You must be logged in to send messages.');
-      return;
-    }
-    if (!creatorProfile) {
-      toast.error('Creator profile not found.');
-      return;
-    }
-    if (user.id === creatorProfile.id) {
-      toast.info("You cannot message yourself.");
-      return;
-    }
-
-    try {
-      const conversation = await getOrCreateConversation(user.id, creatorProfile.id);
-      if (conversation) {
-        if (conversation.status === 'blocked') {
-          toast.error('This user does not accept messages.');
-        } else if (conversation.status === 'pending') {
-          toast.info('Message request sent! The creator needs to accept it.');
-          navigate('/messages', { state: { conversationId: conversation.id } });
-        } else { // 'accepted'
-          toast.success('Conversation opened!');
-          navigate('/messages', { state: { conversationId: conversation.id } });
-        }
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to initiate message.');
-      console.error('Error initiating message:', err);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto p-4 max-w-4xl flex items-center justify-center h-[calc(100vh-140px)]">
@@ -196,9 +162,6 @@ const CreatorProfilePage = () => {
                   className="min-w-[120px]"
                 >
                   {isSubscribing ? '...' : isFollowingCreator ? <><Check className="mr-2 h-4 w-4" /> Joined Crew</> : <><Plus className="mr-2 h-4 w-4" /> Join Crew</>}
-                </Button>
-                <Button variant="outline" onClick={handleInitiateMessage} className="min-w-[120px]">
-                  <MessageSquare className="mr-2 h-4 w-4" /> Message
                 </Button>
               </div>
             )}

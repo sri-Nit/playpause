@@ -10,10 +10,9 @@ import { toast } from 'sonner';
 import { User as LucideUser } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getLikedVideosByUser, getWatchHistory, getSubscribedChannelVideos, Video, WatchHistory as WatchHistoryEntry, updateProfileMessagePreference } from '@/lib/video-store'; // Import updateProfileMessagePreference
+import { getLikedVideosByUser, getWatchHistory, getSubscribedChannelVideos, Video, WatchHistory as WatchHistoryEntry } from '@/lib/video-store';
 import VideoCard from '@/components/VideoCard';
 import { useNavigate } from 'react-router-dom';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Import Select components
 
 interface Profile {
   id: string;
@@ -21,7 +20,6 @@ interface Profile {
   last_name: string | null;
   avatar_url: string | null;
   updated_at: string | null;
-  message_preference: 'open' | 'requests' | 'blocked'; // Include message_preference
 }
 
 const YouPage = () => {
@@ -34,7 +32,6 @@ const YouPage = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
-  const [messagePreference, setMessagePreference] = useState<'open' | 'requests' | 'blocked'>('open'); // State for message preference
 
   // States for new sections
   const [likedVideos, setLikedVideos] = useState<Video[]>([]);
@@ -58,13 +55,12 @@ const YouPage = () => {
         setFirstName(data.first_name || '');
         setLastName(data.last_name || '');
         setAvatarUrl(data.avatar_url || '');
-        setMessagePreference(data.message_preference || 'open'); // Set message preference
       } else {
         // Profile not found, create a new one
         console.log('Profile not found for user, creating a new one.');
         const { data: newProfileData, error: insertError } = await supabase
           .from('profiles')
-          .insert({ id: user.id, first_name: user.user_metadata.first_name || null, last_name: user.user_metadata.last_name || null, message_preference: 'open' })
+          .insert({ id: user.id, first_name: user.user_metadata.first_name || null, last_name: user.user_metadata.last_name || null })
           .select('*')
           .single();
 
@@ -76,7 +72,6 @@ const YouPage = () => {
           setFirstName(newProfileData.first_name || '');
           setLastName(newProfileData.last_name || '');
           setAvatarUrl(newProfileData.avatar_url || '');
-          setMessagePreference(newProfileData.message_preference || 'open');
           toast.success('New profile created!');
         }
       }
@@ -195,7 +190,6 @@ const YouPage = () => {
           last_name: lastName,
           avatar_url: newAvatarUrl,
           updated_at: new Date().toISOString(),
-          message_preference: messagePreference, // Update message preference
         })
         .eq('id', user.id);
 
@@ -289,19 +283,6 @@ const YouPage = () => {
                     placeholder="https://example.com/avatar.jpg"
                     disabled={!!avatarFile}
                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="messagePreference">Message Preference</Label>
-                  <Select value={messagePreference} onValueChange={(value: 'open' | 'requests' | 'blocked') => setMessagePreference(value)}>
-                    <SelectTrigger id="messagePreference">
-                      <SelectValue placeholder="Select message preference" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Open (Anyone can message directly)</SelectItem>
-                      <SelectItem value="requests">Requests (Non-crew messages go to requests)</SelectItem>
-                      <SelectItem value="blocked">Blocked (Do not accept messages)</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <Button onClick={handleUpdateProfile} disabled={isUpdating}>
                   {isUpdating ? 'Updating...' : 'Update Profile'}

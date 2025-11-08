@@ -8,7 +8,6 @@ export interface Profile {
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
-  message_preference: 'open' | 'requests' | 'blocked';
   updated_at: string | null;
 }
 
@@ -94,25 +93,4 @@ export interface WatchHistory {
   watched_at: string;
   watch_seconds: number | null; // Added watch_seconds
   videos: Video; // Changed from video? to videos to match the select query
-}
-
-export interface Conversation {
-  id: string;
-  user1_id: string;
-  user2_id: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'blocked';
-  created_at: string;
-  last_message_at: string;
-  user1: Pick<Profile, 'id' | 'first_name' | 'last_name' | 'avatar_url'>; // Updated to match alias and selected fields
-  user2: Pick<Profile, 'id' | 'first_name' | 'last_name' | 'avatar_url'>; // Updated to match alias and selected fields
-}
-
-export interface Message {
-  id: string;
-  conversation_id: string;
-  sender_id: string;
-  text: string;
-  created_at: string;
-  is_read: boolean;
-  sender: Pick<Profile, 'id' | 'first_name' | 'last_name' | 'avatar_url'>; // Updated to match alias and selected fields
 }
