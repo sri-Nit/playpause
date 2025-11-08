@@ -33,12 +33,11 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
   setSettingsView,
 }) => {
   return (
+    // wrapper must be relative so the content can be absolutely positioned inside the player subtree
     <div
-      className="relative z-[999999]"
-      style={{
-        position: 'relative',
-        pointerEvents: 'auto',
-      }}
+      className="relative z-50"
+      onClick={(e) => e.stopPropagation()} // stop clicks bubbling to player (which may hide controls)
+      style={{ pointerEvents: 'auto' }}
     >
       <DropdownMenu onOpenChange={(open) => !open && setSettingsView('main')}>
         <DropdownMenuTrigger asChild>
@@ -46,25 +45,28 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
             variant="ghost"
             size="icon"
             className="text-white hover:bg-white/20 focus-visible:ring-0"
-            onClick={(e) => { e.stopPropagation(); console.log("Settings button clicked!"); }} // Added console.log
+            onClick={(e) => { e.stopPropagation(); }}
+            aria-haspopup="true"
+            aria-expanded={settingsView !== 'main' ? true : undefined}
           >
             <Settings className="h-5 w-5" />
             <span className="sr-only">Video Settings</span>
           </Button>
         </DropdownMenuTrigger>
 
+        {/* Render the content in-place (no portal/fixed). This keeps the menu inside the player DOM
+            so it remains visible and positioned correctly in fullscreen.
+            If your DropdownMenu supports a different prop name for disabling portal, use that name.
+        */}
         <DropdownMenuContent
           forceMount
-          className="fixed w-48 bg-black/80 text-white border-none rounded-md z-[999999] p-1 shadow-lg backdrop-blur-sm"
+          portalled={false} /* ensure the content renders where the trigger is (Radix-style prop name) */
+          className="absolute right-0 bottom-12 w-48 bg-black/80 text-white border-none rounded-md z-50 p-1 shadow-lg backdrop-blur-sm"
           side="top"
           align="end"
-          sideOffset={12}
+          sideOffset={8}
           collisionPadding={8}
-          style={{
-            position: 'fixed', // ✅ critical: stays within fullscreen
-          }}
         >
-          {/* MAIN VIEW */}
           {settingsView === 'main' && (
             <>
               <DropdownMenuLabel>Video Settings</DropdownMenuLabel>
@@ -72,7 +74,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
-                  e.stopPropagation(); // Stop propagation
+                  e.stopPropagation();
                   setSettingsView('speed');
                 }}
                 className="flex justify-between items-center"
@@ -82,10 +84,11 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   {playbackSpeed === 1.0 ? 'Normal' : `${playbackSpeed}x`}
                 </span>
               </DropdownMenuItem>
+
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
-                  e.stopPropagation(); // Stop propagation
+                  e.stopPropagation();
                   setSettingsView('quality');
                 }}
                 className="flex justify-between items-center"
@@ -96,7 +99,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
             </>
           )}
 
-          {/* SPEED VIEW */}
           {settingsView === 'speed' && (
             <>
               <DropdownMenuLabel className="flex items-center">
@@ -104,7 +106,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 mr-2"
-                  onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }} // Stop propagation
+                  onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -113,15 +115,13 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup
                 value={playbackSpeed.toString()}
-                onValueChange={(value) =>
-                  setPlaybackSpeed(parseFloat(value))
-                }
+                onValueChange={(value) => setPlaybackSpeed(parseFloat(value))}
               >
                 {playbackSpeeds.map((speed) => (
                   <DropdownMenuRadioItem
                     key={speed}
                     value={speed.toString()}
-                    onSelect={(e) => e.stopPropagation()} // Stop propagation
+                    onSelect={(e) => e.stopPropagation()}
                   >
                     {speed === 1.0 ? 'Normal' : `${speed}x`}
                   </DropdownMenuRadioItem>
@@ -130,7 +130,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
             </>
           )}
 
-          {/* QUALITY VIEW */}
           {settingsView === 'quality' && (
             <>
               <DropdownMenuLabel className="flex items-center">
@@ -138,22 +137,19 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 mr-2"
-                  onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }} // Stop propagation
+                  onClick={(e) => { e.stopPropagation(); setSettingsView('main'); }}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 Quality
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                value={currentQuality}
-                onValueChange={handleQualityChange}
-              >
+              <DropdownMenuRadioGroup value={currentQuality} onValueChange={handleQualityChange}>
                 {qualityOptions.map((quality) => (
                   <DropdownMenuRadioItem
                     key={quality}
                     value={quality}
-                    onSelect={(e) => e.stopPropagation()} // Stop propagation
+                    onSelect={(e) => e.stopPropagation()}
                   >
                     {quality}
                   </DropdownMenuRadioItem>
