@@ -354,19 +354,19 @@ const WatchVideo: React.FC = () => {
         <Avatar className="h-8 w-8">
           <AvatarImage src={comment.creator_profiles?.avatar_url || undefined} alt={comment.creator_profiles?.first_name || 'Commenter'} />
           <AvatarFallback>
-            <LucideUser className="h-4 w-4 text-black" />
+            <LucideUser className="h-4 w-4 text-muted-foreground" /> {/* Changed to text-muted-foreground */}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-sm text-black">
+            <span className="font-semibold text-sm text-foreground"> {/* Changed to text-foreground */}
               {comment.creator_profiles?.first_name} {comment.creator_profiles?.last_name}
             </span>
-            <span className="text-xs text-black">
+            <span className="text-xs text-muted-foreground">
               {new Date(comment.created_at).toLocaleString()}
             </span>
           </div>
-          <p className="text-sm mt-1 text-black">{comment.text}</p>
+          <p className="text-sm mt-1 text-foreground">{comment.text}</p> {/* Changed to text-foreground */}
           <div className="flex space-x-2 mt-2">
             {user && user.id === comment.user_id && (
               <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-red-500 hover:text-red-700" onClick={() => handleDeleteComment(comment.id)}>
@@ -380,7 +380,7 @@ const WatchVideo: React.FC = () => {
             )}
           </div>
           {comment.replies && comment.replies.length > 0 && (
-            <div className="ml-8 mt-4 space-y-4 border-l border-black pl-4">
+            <div className="ml-8 mt-4 space-y-4 border-l border-muted-foreground pl-4">
               {renderComments(comment.replies)}
             </div>
           )}
@@ -390,7 +390,7 @@ const WatchVideo: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center text-black py-10">Loading video...</div>;
+    return <div className="text-center text-muted-foreground py-10">Loading video...</div>; {/* Changed to text-muted-foreground */}
   }
 
   if (error) {
@@ -399,7 +399,7 @@ const WatchVideo: React.FC = () => {
       return (
         <div className="container mx-auto p-4 max-w-4xl text-center">
           <div className="bg-card p-8 rounded-lg shadow-lg">
-            <h1 className="text-4xl font-bold mb-4 text-black">{video.title}</h1>
+            <h1 className="text-4xl font-bold mb-4 text-foreground">{video.title}</h1> {/* Changed to text-foreground */}
             {video.thumbnail_url && (
               <img
                 src={video.thumbnail_url}
@@ -407,11 +407,11 @@ const WatchVideo: React.FC = () => {
                 className="mx-auto mb-6 rounded-lg object-cover w-full max-w-md"
               />
             )}
-            <p className="text-xl text-black mb-6">
+            <p className="text-xl text-muted-foreground mb-6">
               This video has been blocked due to content policy violations.
             </p>
             {isOwner && (
-              <p className="text-sm text-black">
+              <p className="text-sm text-muted-foreground">
                 Please review our content guidelines or contact support for more information.
               </p>
             )}
@@ -426,7 +426,7 @@ const WatchVideo: React.FC = () => {
   }
 
   if (!video) {
-    return <div className="text-center text-black py-10">Video not found.</div>;
+    return <div className="text-center text-muted-foreground py-10">Video not found.</div>; {/* Changed to text-muted-foreground */}
   }
 
   const isOwner = user && user.id === video.user_id;
@@ -443,41 +443,41 @@ const WatchVideo: React.FC = () => {
         />
 
         <div className="mt-6 p-4 bg-card rounded-lg shadow-sm">
-          <h1 className="text-4xl font-extrabold mb-2 leading-tight text-black">{video.title}</h1>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-black text-sm mb-4">
+          <h1 className="text-4xl font-extrabold mb-2 leading-tight text-foreground">{video.title}</h1> {/* Changed to text-foreground */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-muted-foreground text-sm mb-4">
             <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline mb-2 sm:mb-0">
               <Avatar className="h-9 w-9">
                 <AvatarImage src={video.creator_profiles?.avatar_url || undefined} alt={video.creator_profiles?.first_name || 'Creator'} />
                 <AvatarFallback>
-                  <LucideUser className="h-5 w-5 text-black" />
+                  <LucideUser className="h-5 w-5 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
-              <p className="text-base font-medium text-black">
+              <p className="text-base font-medium text-foreground"> {/* Changed to text-foreground */}
                 {video.creator_profiles ? `${video.creator_profiles.first_name || ''} ${video.creator_profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
               </p>
             </Link>
-            <div className="flex items-center space-x-4 text-black">
+            <div className="flex items-center space-x-4 text-muted-foreground">
               <p className="text-sm">{video.video_stats?.views || 0} views</p>
               <p className="text-sm">•</p>
               <p className="text-sm">{new Date(video.created_at).toLocaleDateString()}</p>
-              {video.status === 'draft' && <Badge variant="secondary" className="ml-2 text-black">Draft</Badge>}
+              {video.status === 'draft' && <Badge variant="secondary" className="ml-2">Draft</Badge>} {/* Removed text-black */}
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-between py-4 px-4 bg-card rounded-lg shadow-sm mt-4">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" onClick={handleLikeToggle} className={`flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-black'} hover:text-red-500`}>
+            <Button variant="ghost" size="icon" onClick={handleLikeToggle} className={`flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}> {/* Changed to text-muted-foreground */}
               <Heart className="h-5 w-5" fill={isLiked ? 'currentColor' : 'none'} />
               <span className="text-sm">{likes}</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleShareVideo} className="text-black hover:text-black">
+            <Button variant="ghost" size="icon" onClick={handleShareVideo} className="text-muted-foreground hover:text-foreground"> {/* Changed to text-muted-foreground */}
               <Share2 className="h-5 w-5" />
               <span className="sr-only">Share</span>
             </Button>
             {isOwner && (
               <>
-                <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)} className="text-black hover:text-black">
+                <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)} className="text-muted-foreground hover:text-foreground"> {/* Changed to text-muted-foreground */}
                   <Edit className="h-5 w-5" />
                   <span className="sr-only">Edit</span>
                 </Button>
@@ -488,7 +488,7 @@ const WatchVideo: React.FC = () => {
               </>
             )}
             {!isOwner && user && (
-              <Button variant="ghost" size="icon" onClick={() => toast.info('Reporting feature coming soon!')} className="text-black hover:text-black">
+              <Button variant="ghost" size="icon" onClick={() => toast.info('Reporting feature coming soon!')} className="text-muted-foreground hover:text-foreground"> {/* Changed to text-muted-foreground */}
                 <Flag className="h-5 w-5" />
                 <span className="sr-only">Report</span>
               </Button>
@@ -499,24 +499,26 @@ const WatchVideo: React.FC = () => {
         <div className="py-4 px-4 bg-card rounded-lg shadow-sm mt-4">
           <div className="flex flex-wrap gap-2 mb-3">
             {video.tags?.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-black px-3 py-1">{tag}</Badge>
+              <Badge key={index} variant="secondary" className="px-3 py-1"> {/* Removed text-black */}
+                {tag}
+              </Badge>
             ))}
           </div>
-          <p className="text-base text-black leading-relaxed">{video.description}</p>
+          <p className="text-base text-foreground leading-relaxed">{video.description}</p> {/* Changed to text-foreground */}
         </div>
 
         <div className="flex items-center space-x-4 py-4 px-4 bg-card rounded-lg shadow-sm mt-4">
           <Avatar className="h-14 w-14">
             <AvatarImage src={video.creator_profiles?.avatar_url || undefined} alt={video.creator_profiles?.first_name || 'Uploader'} />
             <AvatarFallback>
-              <LucideUser className="h-7 w-7 text-black" />
+              <LucideUser className="h-7 w-7 text-muted-foreground" />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <Link to={`/profile/${video.user_id}`} className="font-semibold text-lg text-black hover:underline">
+            <Link to={`/profile/${video.user_id}`} className="font-semibold text-lg text-foreground hover:underline"> {/* Changed to text-foreground */}
               {video.creator_profiles ? `${video.creator_profiles.first_name || ''} ${video.creator_profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
             </Link>
-            <p className="text-sm text-black">Uploader</p>
+            <p className="text-sm text-muted-foreground">Uploader</p>
           </div>
           {!isOwner && user && video.creator_profiles && (
             <>
@@ -533,14 +535,14 @@ const WatchVideo: React.FC = () => {
         </div>
 
         <div className="mt-8 p-4 bg-card rounded-lg shadow-sm">
-          <h2 className="text-2xl font-bold mb-4 text-black">Comments</h2>
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Comments</h2> {/* Changed to text-foreground */}
           {user && (
             <div className="mb-6">
               <Textarea
                 placeholder="Add a comment..."
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
-                className="mb-2 bg-background text-black"
+                className="mb-2 bg-background text-foreground"
               />
               <Button onClick={() => handlePostComment()} disabled={!newCommentText.trim()}>
                 Post Comment
@@ -554,9 +556,9 @@ const WatchVideo: React.FC = () => {
       </div>
 
       <div className="lg:col-span-1">
-        <h2 className="text-2xl font-bold mb-4 text-black">Related Videos</h2>
+        <h2 className="text-2xl font-bold mb-4 text-foreground">Related Videos</h2> {/* Changed to text-foreground */}
         <div className="space-y-4">
-          <div className="bg-card p-4 rounded-md text-black">
+          <div className="bg-card p-4 rounded-md text-muted-foreground">
             More videos coming soon!
           </div>
         </div>
@@ -565,8 +567,8 @@ const WatchVideo: React.FC = () => {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-black">Are you absolutely sure?</DialogTitle>
-            <DialogDescription className="text-black">
+            <DialogTitle>Are you absolutely sure?</DialogTitle> {/* Removed text-black */}
+            <DialogDescription>
               This action cannot be undone. This will permanently delete your video and all associated data.
             </DialogDescription>
           </DialogHeader>
@@ -580,36 +582,36 @@ const WatchVideo: React.FC = () => {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-black">Edit Video Details</DialogTitle>
-            <DialogDescription className="text-black">
+            <DialogTitle>Edit Video Details</DialogTitle> {/* Removed text-black */}
+            <DialogDescription>
               Make changes to your video's title, description, and tags here.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editTitle" className="text-right text-black">
+              <Label htmlFor="editTitle" className="text-right"> {/* Removed text-black */}
                 Title
               </Label>
               <Input
                 id="editTitle"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="col-span-3 text-black"
+                className="col-span-3" {/* Removed text-black */}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editDescription" className="text-right text-black">
+              <Label htmlFor="editDescription" className="text-right"> {/* Removed text-black */}
                 Description
               </Label>
               <Textarea
                 id="editDescription"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                className="col-span-3 text-black"
+                className="col-span-3" {/* Removed text-black */}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editTags" className="text-right text-black">
+              <Label htmlFor="editTags" className="text-right"> {/* Removed text-black */}
                 Tags
               </Label>
               <Input
@@ -617,7 +619,7 @@ const WatchVideo: React.FC = () => {
                 value={editTags}
                 onChange={(e) => setEditTags(e.target.value)}
                 placeholder="comma, separated, tags"
-                className="col-span-3 text-black"
+                className="col-span-3" {/* Removed text-black */}
               />
             </div>
           </div>
@@ -631,8 +633,8 @@ const WatchVideo: React.FC = () => {
       <Dialog open={!!replyingToCommentId} onOpenChange={() => setReplyingToCommentId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-black">Reply to Comment</DialogTitle>
-            <DialogDescription className="text-black">
+            <DialogTitle>Reply to Comment</DialogTitle> {/* Removed text-black */}
+            <DialogDescription>
               Replying to a comment.
             </DialogDescription>
           </DialogHeader>
@@ -642,7 +644,7 @@ const WatchVideo: React.FC = () => {
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               rows={4}
-              className="bg-background text-black"
+              className="bg-background text-foreground"
             />
           </div>
           <DialogFooter>

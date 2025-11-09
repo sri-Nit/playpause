@@ -52,6 +52,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
     return () => {
       document.removeEventListener('mousedown', onDoc);
       document.removeEventListener('keydown', onKey);
+      if (open) setSettingsView('main'); // Reset view on unmount if open
     };
   }, [open, setSettingsView]);
 
@@ -198,9 +199,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
           )}
         </div>
       )}
-      <style>{`
-        .text-muted-foreground { color: rgba(255,255,255,0.78); }
-      `}</style>
+      {/* Removed the problematic inline style block */}
     </div>
   );
 };
