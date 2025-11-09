@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Search, Bell, User, LogOut, Settings, LayoutDashboard, Users, Sun, Moon } from 'lucide-react';
+import { Upload, Search, Bell, User, LogOut, Settings, LayoutDashboard, Users } from 'lucide-react';
 import { useSession } from './SessionContextProvider';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -13,13 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTheme } from "next-themes"; // Import useTheme
+// Removed useTheme import
 
 const Header = () => {
   const { user, isLoading } = useSession();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const { setTheme } = useTheme(); // Get setTheme function from useTheme hook
+  // Removed setTheme function
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -118,20 +118,7 @@ const Header = () => {
                   <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Theme</DropdownMenuLabel> {/* New Theme Label */}
-                <DropdownMenuItem onClick={() => setTheme("light")}>
-                  <Sun className="mr-2 h-4 w-4" />
-                  <span>Light</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("dark")}>
-                  <Moon className="mr-2 h-4 w-4" />
-                  <span>Dark</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("system")}>
-                  <Settings className="mr-2 h-4 w-4" /> {/* Using Settings icon for system theme */}
-                  <span>System</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {/* Removed Theme Label and Theme DropdownMenuItems */}
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log Out</span>

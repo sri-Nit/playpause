@@ -15,37 +15,37 @@ import SearchResults from "./pages/SearchResults";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import CreatorProfilePage from "./pages/CreatorProfilePage";
 import { SessionContextProvider } from "./components/SessionContextProvider";
-import { ThemeProvider } from "@/components/theme-provider"; // Import the new ThemeProvider
+// Removed ThemeProvider import
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme"> {/* Changed defaultTheme to "dark" */}
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <SessionContextProvider>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/upload" element={<UploadVideo />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/you" element={<YouPage />} />
-                <Route path="/watch/:id" element={<WatchVideo />} />
-                <Route path="/search" element={<SearchResults />} />
-                <Route path="/dashboard" element={<CreatorDashboard />} />
-                <Route path="/profile/:id" element={<CreatorProfilePage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
-          </SessionContextProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+    {/* Removed ThemeProvider wrapper */}
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <SessionContextProvider>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/upload" element={<UploadVideo />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/you" element={<YouPage />} />
+              <Route path="/watch/:id" element={<WatchVideo />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/dashboard" element={<CreatorDashboard />} />
+              <Route path="/profile/:id" element={<CreatorProfilePage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Layout>
+        </SessionContextProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+    {/* Removed ThemeProvider wrapper */}
   </QueryClientProvider>
 );
 
