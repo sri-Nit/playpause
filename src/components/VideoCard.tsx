@@ -44,7 +44,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
               </CardDescription>
             </Link>
             <CardDescription className="text-sm text-muted-foreground">
-              {video.video_stats?.[0]?.views || 0} views • {new Date(video.created_at).toLocaleDateString()}
+              {video.video_stats?.views || 0} views • {new Date(video.created_at).toLocaleDateString()} {/* Corrected view access */}
             </CardDescription>
           </div>
         </CardHeader>

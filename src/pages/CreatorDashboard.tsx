@@ -59,7 +59,7 @@ const CreatorDashboard = () => {
 
       const videosWithAnalytics: VideoWithAnalytics[] = videos.map(video => {
         const analytics = analyticsMap[video.id] || { likes: 0, comments: 0 };
-        viewsCount += video.video_stats?.[0]?.views || 0; // Correctly access views from embedded video_stats
+        viewsCount += video.video_stats?.views || 0; // Corrected view access
         likesCount += analytics.likes;
         commentsCount += analytics.comments;
         return { ...video, likesCount: analytics.likes, commentsCount: analytics.comments };

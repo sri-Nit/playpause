@@ -53,7 +53,80 @@ const WatchVideo: React.FC = () => {
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
-  // Handle view increment when playback threshold is met (with beacon fallback)
+  const fetchVideoDetails = useCallback(async () => {
+    if (!id) {
+      setError('Video ID is missing.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const fetchedVideo = await getVideoById(id);
+      if (fetchedVideo) {
+        // Handle different video statuses
+        if (fetchedVideo.status === 'draft' && (!user || user.id !== fetchedVideo.user_id)) {
+          setError('This video is a draft and not publicly available.');
+          setVideo(null);
+          setIsLoading(false);
+          return;
+        }
+        if (fetchedVideo.status === 'blocked') {
+          setError('This video has been blocked due to content policy violations.');
+          setVideo(fetchedVideo); // Still set video to show title/thumbnail
+          setIsLoading(false);
+          return;
+        }
+
+        setVideo(fetchedVideo);
+        setUploaderProfile(fetchedVideo.creator_profiles || null);
+
+        const fetchedLikes = await getLikesForVideo(id);
+        setLikes(fetchedLikes.length);
+        if (user) {
+          setIsLiked(fetchedLikes.some(like => like.user_id === user.id));
+          if (fetchedVideo.user_id !== user.id) {
+            const followingStatus = await isFollowing(user.id, fetchedVideo.user_id);
+            setIsFollowingUploader(followingStatus);
+          }
+        }
+
+        const fetchedComments = await getCommentsForVideo(id);
+        const commentMap = new Map<string, CommentWithProfile>();
+        fetchedComments.forEach(comment => {
+          if (comment.creator_profiles) {
+            commentMap.set(comment.id, { ...comment, creator_profiles: comment.creator_profiles, replies: [] });
+          } else {
+            console.warn(`Comment ${comment.id} is missing creator_profiles.`);
+          }
+        });
+
+        const rootComments: CommentWithProfile[] = [];
+        fetchedComments.forEach(comment => {
+          if (comment.creator_profiles) {
+            if (comment.parent_comment_id && commentMap.has(comment.parent_comment_id)) {
+              commentMap.get(comment.parent_comment_id)?.replies?.push(commentMap.get(comment.id)!);
+            } else {
+              rootComments.push(commentMap.get(comment.id)!);
+            }
+          }
+        });
+        setComments(rootComments);
+
+        setEditTitle(fetchedVideo.title);
+        setEditDescription(fetchedVideo.description || '');
+        setEditTags(fetchedVideo.tags?.join(', ') || '');
+      } else {
+        setError('Video not found.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch video details.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id, user]);
+
+  // Handle view increment when playback threshold is met
   const handleVideoProgressThresholdMet = useCallback(
     async (videoId: string) => {
       const viewKey = `video_viewed_50_${videoId}`;
@@ -63,28 +136,9 @@ const WatchVideo: React.FC = () => {
 
       // If we've already recorded a view for this session, skip.
       if (sessionStorage.getItem(viewKey)) {
-        console.log(`[WatchVideo] View already incremented for videoId: ${videoId} in this session.`);
+        console.log(`[WatchVideo] View already incremented for videoId: ${videoId} in this session. Not incrementing again.`);
         return;
       }
-
-      // Helper: lightweight sendBeacon fallback (adjust endpoint if your backend differs)
-      const beaconIncrement = (id: string) => {
-        try {
-          if (!('sendBeacon' in navigator)) {
-            console.warn('[WatchVideo] sendBeacon not available in this browser.');
-            return false;
-          }
-          const url = '/api/videos/increment-view'; // <-- change if your backend uses a different route
-          const payload = JSON.stringify({ videoId: id });
-          const blob = new Blob([payload], { type: 'application/json' });
-          const ok = navigator.sendBeacon(url, blob);
-          console.log('[WatchVideo] sendBeacon result for', id, ok);
-          return ok;
-        } catch (e) {
-          console.warn('[WatchVideo] sendBeacon failed', e);
-          return false;
-        }
-      };
 
       console.log(`[WatchVideo] View threshold met for videoId: ${videoId}. Attempting to record view.`);
 
@@ -93,16 +147,11 @@ const WatchVideo: React.FC = () => {
         try {
           await incrementVideoView(videoId);
           console.log(`[WatchVideo] View incremented successfully for videoId: ${videoId}`);
+          // Refetch video details to update the view count in the UI
+          fetchVideoDetails();
         } catch (err: any) {
           console.error(`[WatchVideo] Failed to increment view for videoId: ${videoId}`, err);
-          // Try a best-effort beacon fallback so short navigations don't lose the ping
-          const beaconOk = beaconIncrement(videoId);
-          if (beaconOk) {
-            console.log('[WatchVideo] Fallback sendBeacon succeeded.');
-          } else {
-            // Don't spam the user with raw errors in production; keep message friendly.
-            toast.error('Failed to record view for this session (will not retry).');
-          }
+          toast.error('Failed to record view for this session (will not retry).');
         }
       } else {
         console.log(
@@ -129,85 +178,9 @@ const WatchVideo: React.FC = () => {
         console.warn('[WatchVideo] Failed to set sessionStorage key:', err);
       }
     },
-    // Keep dependency on user and video?.status so handler updates when they change
-    [user, video?.status]
+    // Keep dependency on user, video?.status, and fetchVideoDetails so handler updates when they change
+    [user, video?.status, fetchVideoDetails]
   );
-
-  const fetchVideoDetails = useCallback(async () => {
-    if (!id) {
-      setError('Video ID is missing.');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const fetchedVideo = await getVideoById(id);
-      if (fetchedVideo) {
-        // Handle different video statuses
-        if (fetchedVideo.status === 'draft' && (!user || user.id !== fetchedVideo.user_id)) {
-          setError('This video is a draft and not publicly available.');
-          setVideo(null);
-          setIsLoading(false);
-          return;
-        }
-        // Removed handling for 'processing' status
-        if (fetchedVideo.status === 'blocked') {
-          setError('This video has been blocked due to content policy violations.');
-          setVideo(fetchedVideo); // Still set video to show title/thumbnail
-          setIsLoading(false);
-          return;
-        }
-
-        setVideo(fetchedVideo);
-        setUploaderProfile(fetchedVideo.creator_profiles || null); // Use creator_profiles
-
-        const fetchedLikes = await getLikesForVideo(id);
-        setLikes(fetchedLikes.length);
-        if (user) {
-          setIsLiked(fetchedLikes.some(like => like.user_id === user.id));
-          if (fetchedVideo.user_id !== user.id) {
-            const followingStatus = await isFollowing(user.id, fetchedVideo.user_id);
-            setIsFollowingUploader(followingStatus);
-          }
-        }
-
-        const fetchedComments = await getCommentsForVideo(id);
-        const commentMap = new Map<string, CommentWithProfile>();
-        fetchedComments.forEach(comment => {
-          // Ensure creator_profiles is present before casting
-          if (comment.creator_profiles) {
-            commentMap.set(comment.id, { ...comment, creator_profiles: comment.creator_profiles, replies: [] });
-          } else {
-            console.warn(`Comment ${comment.id} is missing creator_profiles.`);
-            // Handle case where creator_profiles might be missing, e.g., provide a default or filter out
-          }
-        });
-
-        const rootComments: CommentWithProfile[] = [];
-        fetchedComments.forEach(comment => {
-          if (comment.creator_profiles) { // Only process if creator_profiles is present
-            if (comment.parent_comment_id && commentMap.has(comment.parent_comment_id)) {
-              commentMap.get(comment.parent_comment_id)?.replies?.push(commentMap.get(comment.id)!);
-            } else {
-              rootComments.push(commentMap.get(comment.id)!);
-            }
-          }
-        });
-        setComments(rootComments);
-
-        setEditTitle(fetchedVideo.title);
-        setEditDescription(fetchedVideo.description || '');
-        setEditTags(fetchedVideo.tags?.join(', ') || '');
-      } else {
-        setError('Video not found.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch video details.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id, user]);
 
   useEffect(() => {
     if (!isSessionLoading) {
@@ -319,7 +292,7 @@ const WatchVideo: React.FC = () => {
       });
       if (updatedVideo) {
         setVideo(updatedVideo);
-        setUploaderProfile(updatedVideo.creator_profiles || null); // Use creator_profiles
+        setUploaderProfile(updatedVideo.creator_profiles || null);
         toast.success('Video updated successfully!', { id: loadingToastId });
       }
     } catch (err: any) {
@@ -348,9 +321,9 @@ const WatchVideo: React.FC = () => {
         setIsFollowingUploader(false);
         toast.success(`Left ${uploaderProfile.first_name || 'creator'}'s crew.`);
       } else {
-        await addSubscription(user.id, uploader_profile!.id);
+        await addSubscription(user.id, uploaderProfile.id);
         setIsFollowingUploader(true);
-        toast.success(`Joined ${uploader_profile!.first_name || 'creator'}'s crew!`);
+        toast.success(`Joined ${uploaderProfile.first_name || 'creator'}'s crew!`);
       }
     } catch (err: any) {
       toast.error(err.message || 'Failed to update crew status.');
@@ -421,8 +394,7 @@ const WatchVideo: React.FC = () => {
   }
 
   if (error) {
-    // If there's an error, and we have video data (e.g., for blocked status), display it
-    if (video && video.status === 'blocked') { // Removed 'processing' from this condition
+    if (video && video.status === 'blocked') {
       const isOwner = user && user.id === video.user_id;
       return (
         <div className="container mx-auto p-4 max-w-4xl text-center">
@@ -450,7 +422,6 @@ const WatchVideo: React.FC = () => {
         </div>
       );
     }
-    // For other errors (e.g., video not found, network issues, or draft access error)
     return <div className="text-center text-destructive-foreground bg-destructive p-4 rounded-md">{error}</div>;
   }
 
@@ -486,7 +457,7 @@ const WatchVideo: React.FC = () => {
               </p>
             </Link>
             <div className="flex items-center space-x-4">
-              <p className="text-sm">{video.video_stats?.[0]?.views || 0} views</p> {/* Correctly access views */}
+              <p className="text-sm">{video.video_stats?.views || 0} views</p> {/* Corrected view access */}
               <p className="text-sm">•</p>
               <p className="text-sm">{new Date(video.created_at).toLocaleDateString()}</p>
               {video.status === 'draft' && <Badge variant="secondary" className="ml-2">Draft</Badge>}
@@ -661,6 +632,9 @@ const WatchVideo: React.FC = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reply to Comment</DialogTitle>
+            <DialogDescription>
+              Replying to a comment.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Textarea

@@ -35,7 +35,7 @@ export interface Video {
   created_at: string;
   updated_at: string;
   creator_profiles?: Pick<Profile, 'first_name' | 'last_name' | 'avatar_url'>; // Embedded profile with alias
-  video_stats?: { views: number }[]; // Embedded video stats for views
+  video_stats?: { views: number }; // Corrected to be a single object
   channel?: Channel; // Added to include channel data
 }
 

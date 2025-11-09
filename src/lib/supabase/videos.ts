@@ -22,8 +22,8 @@ export const getVideos = async (): Promise<Video[]> => {
         created_at,
         updated_at,
         creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url),
-        video_stats!id(views)
-      `) // Using the explicit foreign key constraint name and adding video_stats
+        video_stats!video_id(views)
+      `) // Corrected foreign key join for video_stats
       .eq('status', 'published')
       .order('created_at', { ascending: false });
 
@@ -59,8 +59,8 @@ export const getCreatorVideos = async (userId: string): Promise<Video[]> => {
         created_at,
         updated_at,
         creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url),
-        video_stats!id(views)
-      `) // Using the explicit foreign key constraint name
+        video_stats!video_id(views)
+      `) // Corrected foreign key join for video_stats
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -109,8 +109,9 @@ export const addVideoMetadata = async (
         size_bytes,
         created_at,
         updated_at,
-        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url)
-      `) // Using the explicit foreign key constraint name
+        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url),
+        video_stats!video_id(views)
+      `) // Corrected foreign key join for video_stats
       .single();
 
     if (error) {
@@ -145,8 +146,8 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
         created_at,
         updated_at,
         creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url),
-        video_stats!id(views)
-      `) // Using the explicit foreign key constraint name
+        video_stats!video_id(views)
+      `) // Corrected foreign key join for video_stats
       .eq('id', id)
       .single();
 
@@ -183,8 +184,9 @@ export const updateVideoMetadata = async (videoId: string, updatedFields: Partia
         size_bytes,
         created_at,
         updated_at,
-        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url)
-      `) // Using the explicit foreign key constraint name
+        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url),
+        video_stats!video_id(views)
+      `) // Corrected foreign key join for video_stats
       .single();
 
     if (error) {
@@ -220,8 +222,9 @@ export const updateVideoStatus = async (videoId: string, status: 'draft' | 'publ
         size_bytes,
         created_at,
         updated_at,
-        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url)
-      `) // Using the explicit foreign key constraint name
+        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url),
+        video_stats!video_id(views)
+      `) // Corrected foreign key join for video_stats
       .single();
 
     if (error) {
@@ -273,8 +276,9 @@ export const searchVideos = async (query: string): Promise<Video[]> => {
         size_bytes,
         created_at,
         updated_at,
-        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url)
-      `) // Using the explicit foreign key constraint name
+        creator_profiles:profiles!videos_owner_id_fkey(first_name, last_name, avatar_url),
+        video_stats!video_id(views)
+      `) // Corrected foreign key join for video_stats
       .eq('status', 'published')
       .or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
       .order('created_at', { ascending: false });
