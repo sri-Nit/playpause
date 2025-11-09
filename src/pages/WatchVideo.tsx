@@ -350,7 +350,7 @@ const WatchVideo: React.FC = () => {
 
   const renderComments = (commentList: CommentWithProfile[]): JSX.Element[] => {
     return commentList.map((comment) => (
-      <div key={comment.id} className="flex items-start space-x-3">
+      <div key={comment.id} className="flex items-start space-x-3 p-3 rounded-md bg-card"> {/* Added bg-card for comments */}
         <Avatar className="h-8 w-8">
           <AvatarImage src={comment.creator_profiles?.avatar_url || undefined} alt={comment.creator_profiles?.first_name || 'Commenter'} />
           <AvatarFallback>
@@ -359,14 +359,14 @@ const WatchVideo: React.FC = () => {
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-sm">
+            <span className="font-semibold text-sm text-foreground"> {/* Ensured text-foreground */}
               {comment.creator_profiles?.first_name} {comment.creator_profiles?.last_name}
             </span>
             <span className="text-xs text-muted-foreground">
               {new Date(comment.created_at).toLocaleString()}
             </span>
           </div>
-          <p className="text-sm mt-1">{comment.text}</p>
+          <p className="text-sm mt-1 text-foreground">{comment.text}</p> {/* Ensured text-foreground */}
           <div className="flex space-x-2 mt-2">
             {user && user.id === comment.user_id && (
               <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-red-500 hover:text-red-700" onClick={() => handleDeleteComment(comment.id)}>
@@ -380,7 +380,7 @@ const WatchVideo: React.FC = () => {
             )}
           </div>
           {comment.replies && comment.replies.length > 0 && (
-            <div className="ml-8 mt-4 space-y-4 border-l pl-4">
+            <div className="ml-8 mt-4 space-y-4 border-l border-muted-foreground pl-4"> {/* Added border-muted-foreground */}
               {renderComments(comment.replies)}
             </div>
           )}
@@ -399,7 +399,7 @@ const WatchVideo: React.FC = () => {
       return (
         <div className="container mx-auto p-4 max-w-4xl text-center">
           <div className="bg-card p-8 rounded-lg shadow-lg">
-            <h1 className="text-4xl font-bold mb-4">{video.title}</h1>
+            <h1 className="text-4xl font-bold mb-4 text-foreground">{video.title}</h1> {/* Ensured text-foreground */}
             {video.thumbnail_url && (
               <img
                 src={video.thumbnail_url}
@@ -442,8 +442,8 @@ const WatchVideo: React.FC = () => {
           videoId={video.id}
         />
 
-        <div className="mt-6 border-b pb-4">
-          <h1 className="text-4xl font-extrabold mb-2 leading-tight">{video.title}</h1>
+        <div className="mt-6 p-4 bg-card rounded-lg shadow-sm"> {/* Added bg-card and padding */}
+          <h1 className="text-4xl font-extrabold mb-2 leading-tight text-foreground">{video.title}</h1>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-muted-foreground text-sm mb-4">
             <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline mb-2 sm:mb-0">
               <Avatar className="h-9 w-9">
@@ -452,12 +452,12 @@ const WatchVideo: React.FC = () => {
                   <LucideUser className="h-5 w-5 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
-              <p className="text-base font-medium">
+              <p className="text-base font-medium text-foreground"> {/* Ensured text-foreground */}
                 {video.creator_profiles ? `${video.creator_profiles.first_name || ''} ${video.creator_profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
               </p>
             </Link>
-            <div className="flex items-center space-x-4">
-              <p className="text-sm">{video.video_stats?.views || 0} views</p> {/* Corrected view access */}
+            <div className="flex items-center space-x-4 text-muted-foreground"> {/* Ensured text-muted-foreground */}
+              <p className="text-sm">{video.video_stats?.views || 0} views</p>
               <p className="text-sm">•</p>
               <p className="text-sm">{new Date(video.created_at).toLocaleDateString()}</p>
               {video.status === 'draft' && <Badge variant="secondary" className="ml-2">Draft</Badge>}
@@ -465,7 +465,7 @@ const WatchVideo: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between py-4 border-b">
+        <div className="flex items-center justify-between py-4 px-4 bg-card rounded-lg shadow-sm mt-4"> {/* Added bg-card and padding */}
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="icon" onClick={handleLikeToggle} className={`flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}>
               <Heart className="h-5 w-5" fill={isLiked ? 'currentColor' : 'none'} />
@@ -496,7 +496,7 @@ const WatchVideo: React.FC = () => {
           </div>
         </div>
 
-        <div className="py-4 border-b">
+        <div className="py-4 px-4 bg-card rounded-lg shadow-sm mt-4"> {/* Added bg-card and padding */}
           <div className="flex flex-wrap gap-2 mb-3">
             {video.tags?.map((tag, index) => (
               <Badge key={index} variant="secondary" className="text-sm px-3 py-1">{tag}</Badge>
@@ -505,7 +505,7 @@ const WatchVideo: React.FC = () => {
           <p className="text-base text-foreground leading-relaxed">{video.description}</p>
         </div>
 
-        <div className="flex items-center space-x-4 py-4 border-b">
+        <div className="flex items-center space-x-4 py-4 px-4 bg-card rounded-lg shadow-sm mt-4"> {/* Added bg-card and padding */}
           <Avatar className="h-14 w-14">
             <AvatarImage src={video.creator_profiles?.avatar_url || undefined} alt={video.creator_profiles?.first_name || 'Uploader'} />
             <AvatarFallback>
@@ -513,7 +513,7 @@ const WatchVideo: React.FC = () => {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <Link to={`/profile/${video.user_id}`} className="font-semibold text-lg hover:underline">
+            <Link to={`/profile/${video.user_id}`} className="font-semibold text-lg text-foreground hover:underline"> {/* Ensured text-foreground */}
               {video.creator_profiles ? `${video.creator_profiles.first_name || ''} ${video.creator_profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
             </Link>
             <p className="text-sm text-muted-foreground">Uploader</p>
@@ -532,15 +532,15 @@ const WatchVideo: React.FC = () => {
           )}
         </div>
 
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">{comments.length} Comments</h2>
+        <div className="mt-8 p-4 bg-card rounded-lg shadow-sm"> {/* Added bg-card and padding */}
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Comments</h2> {/* Ensured text-foreground */}
           {user && (
             <div className="mb-6">
               <Textarea
                 placeholder="Add a comment..."
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
-                className="mb-2"
+                className="mb-2 bg-background text-foreground" // Added bg-background and text-foreground
               />
               <Button onClick={() => handlePostComment()} disabled={!newCommentText.trim()}>
                 Post Comment
@@ -554,9 +554,9 @@ const WatchVideo: React.FC = () => {
       </div>
 
       <div className="lg:col-span-1">
-        <h2 className="text-2xl font-bold mb-4">Related Videos</h2>
+        <h2 className="text-2xl font-bold mb-4 text-foreground">Related Videos</h2> {/* Ensured text-foreground */}
         <div className="space-y-4">
-          <div className="bg-muted p-4 rounded-md text-muted-foreground">
+          <div className="bg-card p-4 rounded-md text-muted-foreground"> {/* Changed bg-muted to bg-card */}
             More videos coming soon!
           </div>
         </div>
@@ -642,6 +642,7 @@ const WatchVideo: React.FC = () => {
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               rows={4}
+              className="bg-background text-foreground" // Added bg-background and text-foreground
             />
           </div>
           <DialogFooter>
