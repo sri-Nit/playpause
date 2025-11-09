@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { User as LucideUser, Plus, Check, VideoIcon } from 'lucide-react';
 import VideoCard from '@/components/VideoCard';
+import { useSound } from '@/hooks/useSound'; // Import the new hook
 
 const CreatorProfilePage = () => {
   const { id: creatorId } = useParams<{ id: string }>();
@@ -27,6 +28,8 @@ const CreatorProfilePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isFollowingCreator, setIsFollowingCreator] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false); // For follow/unfollow loading state
+
+  const { play: playYaySound } = useSound('/sounds/yay.mp3', { volume: 0.7 }); // Placeholder for yay sound
 
   const fetchCreatorData = useCallback(async () => {
     if (!creatorId) {
@@ -92,6 +95,7 @@ const CreatorProfilePage = () => {
       } else {
         await addSubscription(user.id, creatorProfile.id);
         setIsFollowingCreator(true);
+        playYaySound(); // Play yay sound on subscribe
         toast.success(`Joined ${creatorProfile.first_name || 'creator'}'s crew!`);
       }
     } catch (err: any) {

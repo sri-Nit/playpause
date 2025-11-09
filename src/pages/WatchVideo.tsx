@@ -22,7 +22,7 @@ import {
 import CustomVideoPlayer from '@/components/CustomVideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2 } from 'lucide-react'; // Changed Heart to ThumbsUp
+import { ThumbsUp, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2 } from 'lucide-react';
 import { useSession } from '@/components/SessionContextProvider';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,6 +30,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { useSound } from '@/hooks/useSound'; // Import the new hook
 
 const WatchVideo: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -52,6 +53,9 @@ const WatchVideo: React.FC = () => {
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
+
+  const { play: playCheerSound } = useSound('/sounds/cheer.mp3', { volume: 0.7 }); // Placeholder for cheer sound
+  const { play: playYaySound } = useSound('/sounds/yay.mp3', { volume: 0.7 }); // Placeholder for yay sound
 
   const fetchVideoDetails = useCallback(async () => {
     if (!id) {
@@ -205,6 +209,7 @@ const WatchVideo: React.FC = () => {
         await addLike(user.id, id);
         setLikes(prev => prev + 1);
         setIsLiked(true);
+        playCheerSound(); // Play cheer sound on like
         toast.success('Video liked!');
       }
     } catch (err: any) {
@@ -323,6 +328,7 @@ const WatchVideo: React.FC = () => {
       } else {
         await addSubscription(user.id, uploaderProfile.id);
         setIsFollowingUploader(true);
+        playYaySound(); // Play yay sound on subscribe
         toast.success(`Joined ${uploaderProfile.first_name || 'creator'}'s crew!`);
       }
     } catch (err: any) {
@@ -369,7 +375,7 @@ const WatchVideo: React.FC = () => {
           <p className="text-sm text-foreground leading-relaxed">{comment.text}</p>
           <div className="flex space-x-2 mt-3">
             {user && user.id === comment.user_id && (
-              <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs text-destructive hover:bg-destructive/10">
+              <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs text-destructive hover:bg-destructive/10" onClick={() => handleDeleteComment(comment.id)}>
                 Delete
               </Button>
             )}

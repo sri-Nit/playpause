@@ -13,11 +13,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from 'sonner';
+import { useSound } from '@/hooks/useSound'; // Import the new hook
 
 const Header = () => {
   const { user, isLoading } = useSession();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+
+  const { play: playBellSound } = useSound('/sounds/bell.mp3', { volume: 0.7 }); // Placeholder for bell sound
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -35,6 +39,12 @@ const Header = () => {
     if (event.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  const handleNotificationsClick = () => {
+    playBellSound();
+    toast.info('No new notifications for now!');
+    // In a real app, you'd open a notification panel or navigate to a notifications page here.
   };
 
   return (
@@ -78,7 +88,7 @@ const Header = () => {
             <Search className="h-4 w-4" />
             <span className="sr-only">Search</span>
           </Button>
-          <Button variant="ghost" size="icon" className="hidden md:flex text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-full">
+          <Button variant="ghost" size="icon" className="hidden md:flex text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-full" onClick={handleNotificationsClick}>
             <Bell className="h-4 w-4" />
             <span className="sr-only">Notifications</span>
           </Button>
