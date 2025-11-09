@@ -66,9 +66,9 @@ const WatchVideo = () => {
       sessionStorage.setItem(viewKey, 'true');
       console.log(`[WatchVideo] sessionStorage key '${viewKey}' set.`);
     } else {
-      console.log(`[WatchVideo] View already incremented for videoId: ${videoId} in this session.`);
+      console.log(`[WatchVideo] View already incremented for videoId: ${videoId} in this session. Not incrementing again.`);
     }
-  }, [user, video?.status]);
+  }, [user, video]); // Added 'video' to dependencies to ensure video?.status is always current
 
 
   const fetchVideoDetails = useCallback(async () => {
