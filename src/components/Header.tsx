@@ -21,7 +21,7 @@ const Header = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { play: playBellSound } = useSound('/sounds/bell.mp3', { volume: 0.7 }); // Placeholder for bell sound
+  const { play: playBellSound } = useSound('https://hpaptqudnjycydruqdpy.supabase.co/storage/v1/object/public/sounds/sound-effect.mp3', { volume: 0.2 }); // Updated URL and volume
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

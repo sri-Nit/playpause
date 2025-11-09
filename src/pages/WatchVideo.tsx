@@ -54,8 +54,8 @@ const WatchVideo: React.FC = () => {
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
-  const { play: playCheerSound } = useSound('/sounds/cheer.mp3', { volume: 0.7 }); // Placeholder for cheer sound
-  const { play: playYaySound } = useSound('/sounds/yay.mp3', { volume: 0.7 }); // Placeholder for yay sound
+  const { play: playCheerSound } = useSound('https://hpaptqudnjycydruqdpy.supabase.co/storage/v1/object/public/sounds/Cheering%20SFX%20(Download).mp3', { volume: 0.2 }); // Updated URL and volume
+  const { play: playYaySound } = useSound('https://hpaptqudnjycydruqdpy.supabase.co/storage/v1/object/public/sounds/Yayyy%20-%20Sound%20Effect.mp3', { volume: 0.2 }); // Updated URL and volume
 
   const fetchVideoDetails = useCallback(async () => {
     if (!id) {

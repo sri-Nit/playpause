@@ -29,7 +29,7 @@ const CreatorProfilePage = () => {
   const [isFollowingCreator, setIsFollowingCreator] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false); // For follow/unfollow loading state
 
-  const { play: playYaySound } = useSound('/sounds/yay.mp3', { volume: 0.7 }); // Placeholder for yay sound
+  const { play: playYaySound } = useSound('https://hpaptqudnjycydruqdpy.supabase.co/storage/v1/object/public/sounds/Yayyy%20-%20Sound%20Effect.mp3', { volume: 0.2 }); // Updated URL and volume
 
   const fetchCreatorData = useCallback(async () => {
     if (!creatorId) {
