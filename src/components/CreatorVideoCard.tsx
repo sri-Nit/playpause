@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Edit, Trash2, Eye, Heart, MessageCircle, Play, CheckCircle, Clock } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, Eye, ThumbsUp, MessageCircle, Play, CheckCircle, Clock } from 'lucide-react'; // Changed Heart to ThumbsUp
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -112,7 +112,7 @@ const CreatorVideoCard: React.FC<CreatorVideoCardProps> = ({ video, initialLikes
             <Eye className="h-4 w-4 text-primary" /> <span className="text-foreground">{video.video_stats?.views || 0}</span>
           </div>
           <div className="flex items-center space-x-1">
-            <Heart className="h-4 w-4 text-red-500" /> <span className="text-foreground">{likes ?? 0}</span>
+            <ThumbsUp className="h-4 w-4 text-primary" /> <span className="text-foreground">{likes ?? 0}</span> {/* Changed Heart to ThumbsUp */}
           </div>
           <div className="flex items-center space-x-1">
             <MessageCircle className="h-4 w-4 text-blue-500" /> <span className="text-foreground">{comments ?? 0}</span>

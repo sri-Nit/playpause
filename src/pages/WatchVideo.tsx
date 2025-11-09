@@ -22,7 +22,7 @@ import {
 import CustomVideoPlayer from '@/components/CustomVideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2, History } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Trash2, Edit, User as LucideUser, Plus, Check, Flag, Share2 } from 'lucide-react'; // Changed Heart to ThumbsUp
 import { useSession } from '@/components/SessionContextProvider';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -350,15 +350,15 @@ const WatchVideo: React.FC = () => {
 
   const renderComments = (commentList: CommentWithProfile[]): JSX.Element[] => {
     return commentList.map((comment) => (
-      <div key={comment.id} className="flex items-start space-x-3 p-3 rounded-md bg-card">
-        <Avatar className="h-8 w-8">
+      <div key={comment.id} className="flex items-start space-x-3 p-4 rounded-lg bg-background border border-border shadow-sm">
+        <Avatar className="h-9 w-9">
           <AvatarImage src={comment.creator_profiles?.avatar_url || undefined} alt={comment.creator_profiles?.first_name || 'Commenter'} />
-          <AvatarFallback>
-            <LucideUser className="h-4 w-4 text-muted-foreground" />
+          <AvatarFallback className="bg-secondary text-secondary-foreground">
+            <LucideUser className="h-5 w-5" />
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mb-1">
             <span className="font-semibold text-sm text-foreground">
               {comment.creator_profiles?.first_name} {comment.creator_profiles?.last_name}
             </span>
@@ -366,21 +366,21 @@ const WatchVideo: React.FC = () => {
               {new Date(comment.created_at).toLocaleString()}
             </span>
           </div>
-          <p className="text-sm mt-1 text-foreground">{comment.text}</p>
-          <div className="flex space-x-2 mt-2">
+          <p className="text-sm text-foreground leading-relaxed">{comment.text}</p>
+          <div className="flex space-x-2 mt-3">
             {user && user.id === comment.user_id && (
-              <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-red-500 hover:text-red-700" onClick={() => handleDeleteComment(comment.id)}>
+              <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs text-destructive hover:bg-destructive/10">
                 Delete
               </Button>
             )}
             {user && (
-              <Button variant="ghost" size="sm" className="h-auto px-0 py-1 text-xs text-primary hover:text-primary/80" onClick={() => { setReplyingToCommentId(comment.id); setReplyText(''); }}>
+              <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs text-primary hover:bg-primary/10" onClick={() => { setReplyingToCommentId(comment.id); setReplyText(''); }}>
                 Reply
               </Button>
             )}
           </div>
           {comment.replies && comment.replies.length > 0 && (
-            <div className="ml-8 mt-4 space-y-4 border-l border-muted-foreground pl-4">
+            <div className="ml-6 mt-4 space-y-4"> {/* Removed border-l for a cleaner look */}
               {renderComments(comment.replies)}
             </div>
           )}
@@ -398,7 +398,7 @@ const WatchVideo: React.FC = () => {
       const isOwner = user && user.id === video.user_id;
       return (
         <div className="container mx-auto p-4 max-w-4xl text-center">
-          <div className="bg-card p-8 rounded-lg shadow-lg">
+          <div className="bg-card p-8 rounded-lg shadow-lg border border-border">
             <h1 className="text-4xl font-bold mb-4 text-foreground">{video.title}</h1>
             {video.thumbnail_url && (
               <img
@@ -432,117 +432,115 @@ const WatchVideo: React.FC = () => {
   const isOwner = user && user.id === video.user_id;
 
   return (
-    <div className="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="container mx-auto py-6 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2">
-        <CustomVideoPlayer
-          videoUrl={video.video_url}
-          title={video.title}
-          thumbnailUrl={video.thumbnail_url}
-          onProgressThresholdMet={handleVideoProgressThresholdMet}
-          videoId={video.id}
-        />
+        {/* Video Player */}
+        <div className="bg-black rounded-lg overflow-hidden shadow-xl border border-border">
+          <CustomVideoPlayer
+            videoUrl={video.video_url}
+            title={video.title}
+            thumbnailUrl={video.thumbnail_url}
+            onProgressThresholdMet={handleVideoProgressThresholdMet}
+            videoId={video.id}
+          />
+        </div>
 
-        <div className="mt-6 p-4 bg-card rounded-lg shadow-sm">
-          <h1 className="text-4xl font-extrabold mb-2 leading-tight text-foreground">{video.title}</h1>
+        {/* Video Details */}
+        <div className="mt-6 p-6 bg-card rounded-lg shadow-lg border border-border">
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-3 leading-tight text-foreground">{video.title}</h1>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-muted-foreground text-sm mb-4">
-            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline mb-2 sm:mb-0">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={video.creator_profiles?.avatar_url || undefined} alt={video.creator_profiles?.first_name || 'Creator'} />
-                <AvatarFallback>
-                  <LucideUser className="h-5 w-5 text-muted-foreground" />
-                </AvatarFallback>
-              </Avatar>
-              <p className="text-base font-medium text-foreground">
-                {video.creator_profiles ? `${video.creator_profiles.first_name || ''} ${video.creator_profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
-              </p>
-            </Link>
-            <div className="flex items-center space-x-4 text-muted-foreground">
-              <p className="text-sm">{video.video_stats?.views || 0} views</p>
-              <p className="text-sm">•</p>
-              <p className="text-sm">{new Date(video.created_at).toLocaleDateString()}</p>
-              {video.status === 'draft' && <Badge variant="secondary" className="ml-2">Draft</Badge>}
+            <div className="flex items-center space-x-4 text-muted-foreground mb-2 sm:mb-0">
+              <p className="text-base">{video.video_stats?.views || 0} views</p>
+              <p className="text-base">•</p>
+              <p className="text-base">{new Date(video.created_at).toLocaleDateString()}</p>
+              {video.status === 'draft' && <Badge variant="secondary" className="ml-2 bg-yellow-600 text-white">Draft</Badge>}
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center justify-between py-4 px-4 bg-card rounded-lg shadow-sm mt-4">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" onClick={handleLikeToggle} className={`flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}>
-              <Heart className="h-5 w-5" fill={isLiked ? 'currentColor' : 'none'} />
-              <span className="text-sm">{likes}</span>
-            </Button>
-            <Button variant="ghost" size="icon" onClick={handleShareVideo} className="text-muted-foreground hover:text-foreground">
-              <Share2 className="h-5 w-5" />
-              <span className="sr-only">Share</span>
-            </Button>
-            {isOwner && (
-              <>
-                <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)} className="text-muted-foreground hover:text-foreground">
-                  <Edit className="h-5 w-5" />
-                  <span className="sr-only">Edit</span>
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => setIsDeleteDialogOpen(true)} className="text-red-500 hover:text-red-700">
-                  <Trash2 className="h-5 w-5" />
-                  <span className="sr-only">Delete</span>
-                </Button>
-              </>
-            )}
-            {!isOwner && user && (
-              <Button variant="ghost" size="icon" onClick={() => toast.info('Reporting feature coming soon!')} className="text-muted-foreground hover:text-foreground">
-                <Flag className="h-5 w-5" />
-                <span className="sr-only">Report</span>
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between py-4 border-t border-b border-border my-4">
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" onClick={handleLikeToggle} className={`flex items-center gap-2 px-3 py-2 rounded-full ${isLiked ? 'text-primary bg-primary/10 hover:bg-primary/20' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'} transition-colors`}>
+                <ThumbsUp className="h-5 w-5" fill={isLiked ? 'currentColor' : 'none'} />
+                <span className="text-sm font-medium">{likes}</span>
               </Button>
-            )}
+              <Button variant="ghost" onClick={handleShareVideo} className="flex items-center gap-2 px-3 py-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">
+                <Share2 className="h-5 w-5" />
+                <span className="text-sm font-medium">Share</span>
+              </Button>
+              {isOwner && (
+                <>
+                  <Button variant="ghost" onClick={() => setIsEditDialogOpen(true)} className="flex items-center gap-2 px-3 py-2 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors">
+                    <Edit className="h-5 w-5" />
+                    <span className="text-sm font-medium">Edit</span>
+                  </Button>
+                  <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(true)} className="flex items-center gap-2 px-3 py-2 rounded-full text-destructive hover:bg-destructive/10 transition-colors">
+                    <Trash2 className="h-5 w-5" />
+                    <span className="text-sm font-medium">Delete</span>
+                  </Button>
+                </>
+              )}
+              {!isOwner && user && (
+                <Button variant="ghost" onClick={() => toast.info('Reporting feature coming soon!')} className="flex items-center gap-2 px-3 py-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">
+                  <Flag className="h-5 w-5" />
+                  <span className="text-sm font-medium">Report</span>
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="py-4 px-4 bg-card rounded-lg shadow-sm mt-4">
-          <div className="flex flex-wrap gap-2 mb-3">
-            {video.tags?.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="px-3 py-1">{tag}</Badge>
-            ))}
+          {/* Description and Tags */}
+          <div className="mb-6">
+            <div className="flex flex-wrap gap-2 mb-4">
+              {video.tags?.map((tag, index) => (
+                <Badge key={index} variant="secondary" className="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-full">{tag}</Badge>
+              ))}
+            </div>
+            <p className="text-base text-foreground leading-relaxed whitespace-pre-wrap">{video.description}</p>
           </div>
-          <p className="text-base text-foreground leading-relaxed">{video.description}</p>
-        </div>
 
-        <div className="flex items-center space-x-4 py-4 px-4 bg-card rounded-lg shadow-sm mt-4">
-          <Avatar className="h-14 w-14">
-            <AvatarImage src={video.creator_profiles?.avatar_url || undefined} alt={video.creator_profiles?.first_name || 'Uploader'} />
-            <AvatarFallback>
-              <LucideUser className="h-7 w-7 text-muted-foreground" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <Link to={`/profile/${video.user_id}`} className="font-semibold text-lg text-foreground hover:underline">
-              {video.creator_profiles ? `${video.creator_profiles.first_name || ''} ${video.creator_profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+          {/* Uploader Profile */}
+          <div className="flex items-center space-x-4 py-4 border-t border-border">
+            <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-3 group">
+              <Avatar className="h-12 w-12 border-2 border-primary/50">
+                <AvatarImage src={video.creator_profiles?.avatar_url || undefined} alt={video.creator_profiles?.first_name || 'Uploader'} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                  <LucideUser className="h-6 w-6" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
+                  {video.creator_profiles ? `${video.creator_profiles.first_name || ''} ${video.creator_profiles.last_name || ''}`.trim() || 'Unknown Creator' : 'Loading Creator...'}
+                </p>
+                <p className="text-sm text-muted-foreground">Uploader</p>
+              </div>
             </Link>
-            <p className="text-sm text-muted-foreground">Uploader</p>
-          </div>
-          {!isOwner && user && video.creator_profiles && (
-            <>
+            {!isOwner && user && uploaderProfile && (
               <Button
                 variant={isFollowingUploader ? "secondary" : "default"}
                 onClick={handleFollowToggle}
                 disabled={isSubscribing}
-                className="mr-2"
+                className="ml-auto px-4 py-2 rounded-full text-sm font-medium transition-colors"
               >
                 {isSubscribing ? '...' : isFollowingUploader ? <><Check className="mr-2 h-4 w-4" /> Joined Crew</> : <><Plus className="mr-2 h-4 w-4" /> Join Crew</>}
               </Button>
-            </>
-          )}
+            )}
+          </div>
         </div>
 
-        <div className="mt-8 p-4 bg-card rounded-lg shadow-sm">
-          <h2 className="text-2xl font-bold mb-4 text-foreground">Comments</h2>
+        {/* Comments Section */}
+        <div className="mt-8 p-6 bg-card rounded-lg shadow-lg border border-border">
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Comments ({comments.length})</h2>
           {user && (
-            <div className="mb-6">
+            <div className="mb-8 p-4 bg-background rounded-lg border border-border shadow-sm">
               <Textarea
                 placeholder="Add a comment..."
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
-                className="mb-2 bg-background text-foreground"
+                rows={3}
+                className="mb-3 bg-input text-foreground border-border focus-visible:ring-primary"
               />
-              <Button onClick={() => handlePostComment()} disabled={!newCommentText.trim()}>
+              <Button onClick={() => handlePostComment()} disabled={!newCommentText.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 Post Comment
               </Button>
             </div>
@@ -553,63 +551,66 @@ const WatchVideo: React.FC = () => {
         </div>
       </div>
 
+      {/* Related Videos Section */}
       <div className="lg:col-span-1">
         <h2 className="text-2xl font-bold mb-4 text-foreground">Related Videos</h2>
         <div className="space-y-4">
-          <div className="bg-card p-4 rounded-md text-muted-foreground">
+          <div className="bg-card p-4 rounded-lg border border-border text-muted-foreground shadow-sm">
             More videos coming soon!
           </div>
         </div>
       </div>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-card border-border text-foreground">
           <DialogHeader>
-            <DialogTitle>Are you absolutely sure?</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-destructive">Are you absolutely sure?</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               This action cannot be undone. This will permanently delete your video and all associated data.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} className="text-foreground border-border hover:bg-secondary/50">Cancel</Button>
             <Button variant="destructive" onClick={handleDeleteVideo}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Edit Video Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px] bg-card border-border text-foreground">
           <DialogHeader>
-            <DialogTitle>Edit Video Details</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-primary">Edit Video Details</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Make changes to your video's title, description, and tags here.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editTitle" className="text-right">
+              <Label htmlFor="editTitle" className="text-right text-foreground">
                 Title
               </Label>
               <Input
                 id="editTitle"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="col-span-3"
+                className="col-span-3 bg-input text-foreground border-border focus-visible:ring-primary"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editDescription" className="text-right">
+              <Label htmlFor="editDescription" className="text-right text-foreground">
                 Description
               </Label>
               <Textarea
                 id="editDescription"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                className="col-span-3"
+                className="col-span-3 bg-input text-foreground border-border focus-visible:ring-primary"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editTags" className="text-right">
+              <Label htmlFor="editTags" className="text-right text-foreground">
                 Tags
               </Label>
               <Input
@@ -617,22 +618,23 @@ const WatchVideo: React.FC = () => {
                 value={editTags}
                 onChange={(e) => setEditTags(e.target.value)}
                 placeholder="comma, separated, tags"
-                className="col-span-3"
+                className="col-span-3 bg-input text-foreground border-border focus-visible:ring-primary"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditVideo} disabled={isSubscribing}>Save changes</Button>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="text-foreground border-border hover:bg-secondary/50">Cancel</Button>
+            <Button onClick={handleEditVideo} disabled={isSubscribing} className="bg-primary text-primary-foreground hover:bg-primary/90">Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Reply Dialog */}
       <Dialog open={!!replyingToCommentId} onOpenChange={() => setReplyingToCommentId(null)}>
-        <DialogContent>
+        <DialogContent className="bg-card border-border text-foreground">
           <DialogHeader>
-            <DialogTitle>Reply to Comment</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-primary">Reply to Comment</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Replying to a comment.
             </DialogDescription>
           </DialogHeader>
@@ -642,12 +644,12 @@ const WatchVideo: React.FC = () => {
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               rows={4}
-              className="bg-background text-foreground"
+              className="bg-input text-foreground border-border focus-visible:ring-primary"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setReplyingToCommentId(null)}>Cancel</Button>
-            <Button onClick={() => handlePostComment(replyingToCommentId)} disabled={!replyText.trim()}>Post Reply</Button>
+            <Button variant="outline" onClick={() => setReplyingToCommentId(null)} className="text-foreground border-border hover:bg-secondary/50">Cancel</Button>
+            <Button onClick={() => handlePostComment(replyingToCommentId)} disabled={!replyText.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90">Post Reply</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
