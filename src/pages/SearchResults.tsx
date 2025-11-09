@@ -35,9 +35,9 @@ const SearchResults = () => {
           return likesB - likesA; // Descending order for popularity
         });
       } else if (sortOrder === 'duration_asc') {
-        fetchedVideos.sort((a, b) => (a.duration || 0) - (b.duration || 0)); // Ascending duration
+        fetchedVideos.sort((a, b) => (a.duration_seconds || 0) - (b.duration_seconds || 0)); // Ascending duration
       } else if (sortOrder === 'duration_desc') {
-        fetchedVideos.sort((a, b) => (b.duration || 0) - (a.duration || 0)); // Descending duration
+        fetchedVideos.sort((a, b) => (b.duration_seconds || 0) - (a.duration_seconds || 0)); // Descending duration
       } else { // 'latest' is default and already handled by searchVideos
         // No additional client-side sort needed as searchVideos already orders by created_at DESC
       }
@@ -66,7 +66,7 @@ const SearchResults = () => {
   return (
     <div className="min-h-screen p-4">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-center">Search Results for "{query}"</h1>
+        <h1 className="text-3xl font-bold text-center text-foreground">Search Results for "{query}"</h1>
         <div className="flex items-center space-x-2">
           <span className="text-muted-foreground text-sm">Sort by:</span>
           <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>

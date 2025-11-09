@@ -142,7 +142,7 @@ const CreatorProfilePage = () => {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 text-center sm:text-left">
-            <CardTitle className="text-4xl font-extrabold leading-tight mb-2">
+            <CardTitle className="text-4xl font-extrabold leading-tight mb-2 text-foreground">
               {creatorProfile.first_name} {creatorProfile.last_name}
             </CardTitle>
             <CardDescription className="text-lg text-muted-foreground mt-1">
@@ -174,7 +174,7 @@ const CreatorProfilePage = () => {
         </CardContent>
       </Card>
 
-      <h2 className="text-3xl font-bold mb-6 mt-10 text-center sm:text-left">
+      <h2 className="text-3xl font-bold mb-6 mt-10 text-center sm:text-left text-foreground">
         Published Videos by {creatorProfile.first_name}
       </h2>
       {creatorVideos.length === 0 ? (

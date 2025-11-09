@@ -215,7 +215,7 @@ const YouPage = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-4xl font-bold mb-8 text-center">Your Account</h1>
+      <h1 className="text-4xl font-bold mb-8 text-center text-foreground">Your Account</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -228,8 +228,8 @@ const YouPage = () => {
         <TabsContent value="profile" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl font-bold">Your Profile</CardTitle>
-              <CardDescription>Manage your account details.</CardDescription>
+              <CardTitle className="text-2xl font-bold text-foreground">Your Profile</CardTitle>
+              <CardDescription className="text-muted-foreground">Manage your account details.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -240,48 +240,52 @@ const YouPage = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-center sm:text-left">
-                  <p className="text-lg font-semibold">{user.email}</p>
+                  <p className="text-lg font-semibold text-foreground">{user.email}</p>
                   <p className="text-sm text-muted-foreground">Member since: {new Date(user.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
 
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName" className="text-foreground">First Name</Label>
                   <Input
                     id="firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="First Name"
+                    className="text-foreground"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName" className="text-foreground">Last Name</Label>
                   <Input
                     id="lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Last Name"
+                    className="text-foreground"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="avatarFile">Upload Avatar</Label>
+                  <Label htmlFor="avatarFile" className="text-foreground">Upload Avatar</Label>
                   <Input
                     id="avatarFile"
                     type="file"
                     accept="image/*"
                     onChange={handleAvatarFileChange}
+                    className="text-foreground"
                   />
                   {avatarFile && <p className="text-sm text-muted-foreground">Selected: {avatarFile.name}</p>}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="avatarUrl">Avatar URL (or upload above)</Label>
+                  <Label htmlFor="avatarUrl" className="text-foreground">Avatar URL (or upload above)</Label>
                   <Input
                     id="avatarUrl"
                     value={avatarUrl}
                     onChange={(e) => setAvatarUrl(e.target.value)}
                     placeholder="https://example.com/avatar.jpg"
                     disabled={!!avatarFile}
+                    className="text-foreground"
                   />
                 </div>
                 <Button onClick={handleUpdateProfile} disabled={isUpdating}>
@@ -293,7 +297,7 @@ const YouPage = () => {
         </TabsContent>
 
         <TabsContent value="liked" className="mt-6">
-          <h2 className="text-2xl font-bold mb-4">Your Liked Videos</h2>
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Your Liked Videos</h2>
           {isContentLoading ? (
             <div className="text-center text-muted-foreground py-10">Loading liked videos...</div>
           ) : likedVideos.length === 0 ? (
@@ -308,7 +312,7 @@ const YouPage = () => {
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">
-          <h2 className="text-2xl font-bold mb-4">Your Watch History</h2>
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Your Watch History</h2>
           {isContentLoading ? (
             <div className="text-center text-muted-foreground py-10">Loading watch history...</div>
           ) : watchHistory.length === 0 ? (
@@ -323,7 +327,7 @@ const YouPage = () => {
         </TabsContent>
 
         <TabsContent value="subscribed" className="mt-6">
-          <h2 className="text-2xl font-bold mb-4">Videos from Joined Crews</h2>
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Videos from Joined Crews</h2>
           {isContentLoading ? (
             <div className="text-center text-muted-foreground py-10">Loading videos from joined crews...</div>
           ) : subscribedVideos.length === 0 ? (

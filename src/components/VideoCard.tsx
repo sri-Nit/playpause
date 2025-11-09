@@ -30,7 +30,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
           </AspectRatio>
         </CardContent>
         <CardHeader className="p-4">
-          <CardTitle className="text-lg font-semibold line-clamp-2 mb-1">{video.title}</CardTitle>
+          <CardTitle className="text-lg font-semibold line-clamp-2 mb-1 text-foreground">{video.title}</CardTitle>
           <div className="flex items-center justify-between text-sm text-muted-foreground mt-1">
             <Link to={`/profile/${video.user_id}`} className="flex items-center space-x-2 hover:underline">
               <Avatar className="h-6 w-6">
@@ -44,7 +44,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
               </CardDescription>
             </Link>
             <CardDescription className="text-sm text-muted-foreground">
-              {video.video_stats?.views || 0} views • {new Date(video.created_at).toLocaleDateString()} {/* Corrected view access */}
+              {video.video_stats?.views || 0} views • {new Date(video.created_at).toLocaleDateString()}
             </CardDescription>
           </div>
         </CardHeader>

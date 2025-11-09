@@ -36,7 +36,7 @@ const Index = () => {
   return (
     <div className="min-h-screen p-4">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-center">Explore Videos</h1>
+        <h1 className="text-3xl font-bold text-center text-foreground">Explore Videos</h1>
         {/* Sorting functionality removed from home page */}
       </div>
 

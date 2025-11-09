@@ -146,7 +146,7 @@ const CreatorDashboard = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-4xl font-bold mb-8 text-center">Creator Dashboard</h1>
+      <h1 className="text-4xl font-bold mb-8 text-center text-foreground">Creator Dashboard</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -165,31 +165,31 @@ const CreatorDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground">Total Views</CardTitle>
                 <Eye className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalViews}</div>
+                <div className="text-2xl font-bold text-foreground">{totalViews}</div>
                 <p className="text-xs text-muted-foreground">Across all your videos</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Likes</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground">Total Likes</CardTitle>
                 <Heart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalLikes}</div>
+                <div className="text-2xl font-bold text-foreground">{totalLikes}</div>
                 <p className="text-xs text-muted-foreground">Across all your videos</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Comments</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground">Total Comments</CardTitle>
                 <MessageCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalComments}</div>
+                <div className="text-2xl font-bold text-foreground">{totalComments}</div>
                 <p className="text-xs text-muted-foreground">Across all your videos</p>
               </CardContent>
             </Card>
@@ -226,7 +226,7 @@ const CreatorDashboard = () => {
         </TabsContent>
 
         <TabsContent value="comments" className="mt-6">
-          <h2 className="text-2xl font-bold mb-4">Comments on Your Videos</h2>
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Comments on Your Videos</h2>
           {allComments.length === 0 ? (
             <div className="text-center text-muted-foreground py-10">
               No comments on your videos yet.
@@ -244,14 +244,14 @@ const CreatorDashboard = () => {
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-sm">
+                        <span className="font-semibold text-sm text-foreground">
                           {comment.creator_profiles?.first_name} {comment.creator_profiles?.last_name}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {new Date(comment.created_at).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-sm mt-1">{comment.text}</p>
+                      <p className="text-sm mt-1 text-foreground">{comment.text}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         On video: <span className="font-medium">{comment.videos?.title || 'Unknown Video'}</span>
                       </p>
@@ -287,6 +287,7 @@ const CreatorDashboard = () => {
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               rows={4}
+              className="bg-background text-foreground"
             />
           </div>
           <DialogFooter>

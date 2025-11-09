@@ -104,7 +104,7 @@ const CreatorVideoCard: React.FC<CreatorVideoCardProps> = ({ video, initialLikes
         )}
       </CardContent>
       <CardHeader className="p-4 flex-grow">
-        <CardTitle className="text-lg font-semibold line-clamp-2">{video.title}</CardTitle>
+        <CardTitle className="text-lg font-semibold line-clamp-2 text-foreground">{video.title}</CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
           {new Date(video.created_at).toLocaleDateString()}
         </CardDescription>
@@ -170,29 +170,29 @@ const CreatorVideoCard: React.FC<CreatorVideoCardProps> = ({ video, initialLikes
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editTitle" className="text-right">
+              <Label htmlFor="editTitle" className="text-right text-foreground">
                 Title
               </Label>
               <Input
                 id="editTitle"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="col-span-3"
+                className="col-span-3 text-foreground"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editDescription" className="text-right">
+              <Label htmlFor="editDescription" className="text-right text-foreground">
                 Description
               </Label>
               <Textarea
                 id="editDescription"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                className="col-span-3"
+                className="col-span-3 text-foreground"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editTags" className="text-right">
+              <Label htmlFor="editTags" className="text-right text-foreground">
                 Tags
               </Label>
               <Input
@@ -200,15 +200,15 @@ const CreatorVideoCard: React.FC<CreatorVideoCardProps> = ({ video, initialLikes
                 value={editTags}
                 onChange={(e) => setEditTags(e.target.value)}
                 placeholder="comma, separated, tags"
-                className="col-span-3"
+                className="col-span-3 text-foreground"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editStatus" className="text-right">
+              <Label htmlFor="editStatus" className="text-right text-foreground">
                 Status
               </Label>
               <Select value={editStatus} onValueChange={(value: 'draft' | 'published') => setEditStatus(value)}>
-                <SelectTrigger id="editStatus" className="col-span-3">
+                <SelectTrigger id="editStatus" className="col-span-3 text-foreground">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>

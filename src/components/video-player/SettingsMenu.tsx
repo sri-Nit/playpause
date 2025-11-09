@@ -199,7 +199,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
           )}
         </div>
       )}
-      {/* Removed the problematic inline style block */}
     </div>
   );
 };
