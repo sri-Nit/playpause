@@ -4,47 +4,45 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%; /* Dark background */
-    --foreground: 210 40% 98%; /* Light foreground text */
+    --background: 220 13% 10%; /* Deep charcoal background */
+    --foreground: 210 20% 98%; /* Soft white foreground text */
 
-    --card: 222.2 84% 4.9%; /* Dark card background */
-    --card-foreground: 210 40% 98%; /* Light card foreground text */
+    --card: 220 13% 15%; /* Slightly lighter card background */
+    --card-foreground: 210 20% 98%; /* Soft white card foreground text */
 
-    --popover: 222.2 84% 4.9%; /* Dark popover background */
-    --popover-foreground: 210 40% 98%; /* Light popover foreground text */
+    --popover: 220 13% 15%; /* Popover background */
+    --popover-foreground: 210 20% 98%; /* Popover foreground text */
 
-    --primary: 210 40% 98%; /* Light primary for dark theme */
-    --primary-foreground: 222.2 47.4% 11.2%; /* Dark primary foreground for dark theme */
+    --primary: 200 80% 60%; /* Vibrant blue primary for dark theme */
+    --primary-foreground: 220 13% 10%; /* Dark primary foreground */
 
-    --secondary: 217.2 32.6% 17.5%; /* Dark secondary for dark theme */
-    --secondary-foreground: 210 40% 98%; /* Light secondary foreground for dark theme */
+    --secondary: 210 10% 25%; /* Muted secondary for dark theme */
+    --secondary-foreground: 210 20% 98%; /* Soft white secondary foreground */
 
-    --muted: 217.2 32.6% 17.5%; /* Dark muted for dark theme */
-    --muted-foreground: 215 20.2% 65.1%; /* Lighter muted foreground for dark theme */
+    --muted: 210 10% 20%; /* Dark muted for dark theme */
+    --muted-foreground: 210 10% 60%; /* Lighter muted foreground */
 
-    --accent: 217.2 32.6% 17.5%; /* Dark accent for dark theme */
-    --accent-foreground: 210 40% 98%; /* Light accent foreground for dark theme */
+    --accent: 200 80% 60%; /* Accent color matching primary */
+    --accent-foreground: 220 13% 10%; /* Dark accent foreground */
 
-    --destructive: 0 62.8% 30.6%; /* Dark destructive for dark theme */
-    --destructive-foreground: 210 40% 98%; /* Light destructive foreground for dark theme */
+    --destructive: 0 80% 50%; /* Red destructive for dark theme */
+    --destructive-foreground: 210 20% 98%; /* Soft white destructive foreground */
 
-    --border: 217.2 32.6% 17.5%; /* Dark border for dark theme */
-    --input: 217.2 32.6% 17.5%; /* Dark input for dark theme */
-    --ring: 212.7 26.8% 83.9%; /* Light ring for dark theme */
+    --border: 210 10% 30%; /* Subtle border color */
+    --input: 210 10% 20%; /* Dark input background */
+    --ring: 200 80% 60%; /* Ring color matching primary */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 220 13% 10%;
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-primary: 200 80% 60%;
+    --sidebar-primary-foreground: 220 13% 10%;
+    --sidebar-accent: 210 10% 20%;
+    --sidebar-accent-foreground: 210 20% 98%;
+    --sidebar-border: 210 10% 30%;
+    --sidebar-ring: 200 80% 60%;
   }
-
-  /* Removed .dark block as all colors are now hardcoded to dark theme in :root */
 }
 
 @layer base {
@@ -54,6 +52,26 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Subtle radial gradient for depth */
+    background-image: radial-gradient(at 20% 80%, hsla(200, 80%, 20%, 0.1) 0px, transparent 50%),
+                      radial-gradient(at 80% 20%, hsla(240, 50%, 20%, 0.1) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* Custom Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--muted);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
   }
 }
 

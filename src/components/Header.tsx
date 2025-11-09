@@ -13,13 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// Removed useTheme import
 
 const Header = () => {
   const { user, isLoading } = useSession();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  // Removed setTheme function
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -40,14 +38,14 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md shadow-lg">
+      <div className="container flex h-16 items-center justify-between px-4">
         {/* Left section: Home and PlayPause */}
-        <div className="flex items-center space-x-4">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-lg">PlayPause</span>
+        <div className="flex items-center space-x-6">
+          <Link to="/" className="flex items-center space-x-2 group">
+            <span className="font-extrabold text-xl text-primary group-hover:text-primary/80 transition-colors">PlayPause</span>
           </Link>
-          <Link to="/" className="hidden md:inline-block text-sm font-medium text-muted-foreground hover:text-foreground">
+          <Link to="/" className="hidden md:inline-block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Home
           </Link>
         </div>
@@ -59,7 +57,7 @@ const Header = () => {
             <Input
               type="text"
               placeholder="Search videos..."
-              className="w-full pl-9 pr-3 py-2 rounded-md border border-input bg-background shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="w-full pl-9 pr-3 py-2 rounded-full border border-input bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary transition-all duration-200"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -70,56 +68,55 @@ const Header = () => {
         {/* Right section: Upload, Search (mobile), Notifications, Account */}
         <nav className="flex items-center space-x-2 md:space-x-4">
           <Link to="/upload">
-            <Button variant="ghost" className="flex items-center gap-2">
+            <Button variant="ghost" className="flex items-center gap-2 text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-full px-3 py-2">
               <Upload className="h-4 w-4" />
               <span className="hidden md:inline">Upload Video</span>
             </Button>
           </Link>
           {/* Mobile search icon */}
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={handleSearch}>
+          <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-full">
             <Search className="h-4 w-4" />
             <span className="sr-only">Search</span>
           </Button>
-          <Button variant="ghost" size="icon" className="hidden md:flex">
+          <Button variant="ghost" size="icon" className="hidden md:flex text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-full">
             <Bell className="h-4 w-4" />
             <span className="sr-only">Notifications</span>
           </Button>
 
           {isLoading ? (
-            <Button variant="ghost" size="icon" disabled>
+            <Button variant="ghost" size="icon" disabled className="rounded-full">
               <User className="h-4 w-4" />
               <span className="sr-only">Loading...</span>
             </Button>
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors">
                   <User className="h-4 w-4" />
                   <span className="sr-only">Account Menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/you')}>
-                  <User className="mr-2 h-4 w-4" />
+              <DropdownMenuContent align="end" className="bg-card border-border text-foreground">
+                <DropdownMenuLabel className="text-primary">My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem onClick={() => navigate('/you')} className="hover:bg-secondary/50 focus:bg-secondary/50 cursor-pointer">
+                  <User className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span>You</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                <DropdownMenuItem onClick={() => navigate('/dashboard')} className="hover:bg-secondary/50 focus:bg-secondary/50 cursor-pointer">
+                  <LayoutDashboard className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span>Creator Dashboard</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => console.log('Switch Account clicked')}>
-                  <Users className="mr-2 h-4 w-4" />
+                <DropdownMenuItem onClick={() => console.log('Switch Account clicked')} className="hover:bg-secondary/50 focus:bg-secondary/50 cursor-pointer">
+                  <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span>Switch Account</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => console.log('Settings clicked')}>
-                  <Settings className="mr-2 h-4 w-4" />
+                <DropdownMenuItem onClick={() => console.log('Settings clicked')} className="hover:bg-secondary/50 focus:bg-secondary/50 cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span>Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {/* Removed Theme Label and Theme DropdownMenuItems */}
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive hover:bg-destructive/20 focus:bg-destructive/20 cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log Out</span>
                 </DropdownMenuItem>
@@ -127,7 +124,7 @@ const Header = () => {
             </DropdownMenu>
           ) : (
             <Link to="/auth">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors">
                 <User className="h-4 w-4" />
                 <span className="sr-only">Login</span>
               </Button>
