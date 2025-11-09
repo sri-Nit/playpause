@@ -67,25 +67,6 @@ const WatchVideo: React.FC = () => {
         return;
       }
 
-      // Helper: lightweight sendBeacon fallback (adjust endpoint if your backend differs)
-      const beaconIncrement = (id: string) => {
-        try {
-          if (!('sendBeacon' in navigator)) {
-            console.warn('[WatchVideo] sendBeacon not available in this browser.');
-            return false;
-          }
-          const url = '/api/videos/increment-view'; // <-- change if your backend uses a different route
-          const payload = JSON.stringify({ videoId: id });
-          const blob = new Blob([payload], { type: 'application/json' });
-          const ok = navigator.sendBeacon(url, blob);
-          console.log('[WatchVideo] sendBeacon result for', id, ok);
-          return ok;
-        } catch (e) {
-          console.warn('[WatchVideo] sendBeacon failed', e);
-          return false;
-        }
-      };
-
       console.log(`[WatchVideo] View threshold met for videoId: ${videoId}. Attempting to record view.`);
 
       // Try to increment view count via your normal API call.
@@ -95,14 +76,7 @@ const WatchVideo: React.FC = () => {
           console.log(`[WatchVideo] View incremented successfully for videoId: ${videoId}`);
         } catch (err: any) {
           console.error(`[WatchVideo] Failed to increment view for videoId: ${videoId}`, err);
-          // Try a best-effort beacon fallback so short navigations don't lose the ping
-          const beaconOk = beaconIncrement(videoId);
-          if (beaconOk) {
-            console.log('[WatchVideo] Fallback sendBeacon succeeded.');
-          } else {
-            // Don't spam the user with raw errors in production; keep message friendly.
-            toast.error('Failed to record view for this session (will not retry).');
-          }
+          toast.error('Failed to record view for this session (will not retry).');
         }
       } else {
         console.log(
@@ -348,9 +322,9 @@ const WatchVideo: React.FC = () => {
         setIsFollowingUploader(false);
         toast.success(`Left ${uploaderProfile.first_name || 'creator'}'s crew.`);
       } else {
-        await addSubscription(user.id, uploader_profile!.id);
+        await addSubscription(user.id, uploaderProfile.id);
         setIsFollowingUploader(true);
-        toast.success(`Joined ${uploader_profile!.first_name || 'creator'}'s crew!`);
+        toast.success(`Joined ${uploaderProfile.first_name || 'creator'}'s crew!`);
       }
     } catch (err: any) {
       toast.error(err.message || 'Failed to update crew status.');
@@ -661,6 +635,9 @@ const WatchVideo: React.FC = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reply to Comment</DialogTitle>
+            <DialogDescription>
+              Replying to a comment.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Textarea
