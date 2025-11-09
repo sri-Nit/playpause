@@ -34,25 +34,85 @@ const WatchVideo = () => {
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
-
-  const handleVideoProgressThresholdMet = useCallback(async (videoId: string) => {
+  // Replace your existing handleVideoProgressThresholdMet useCallback with this block
+const handleVideoProgressThresholdMet = useCallback(
+  async (videoId: string) => {
     const viewKey = `video_viewed_50_${videoId}`;
     console.log(`[WatchVideo] handleVideoProgressThresholdMet called for videoId: ${videoId}`);
     console.log(`[WatchVideo] User: ${user ? user.id : 'Not authenticated'}`);
     console.log(`[WatchVideo] Video status: ${video?.status}`);
 
-    if (!sessionStorage.getItem(viewKey)) {
-      console.log(`[WatchVideo] View threshold met for videoId: ${videoId}. Incrementing view.`);
-      if (video?.status === 'published') { // Only increment views for published videos
-        try {
-          await incrementVideoView(videoId);
-          console.log(`[WatchVideo] View incremented successfully for videoId: ${videoId}`);
-        } catch (err: any) {
-          console.error(`[WatchVideo] Failed to increment view for videoId: ${videoId}`, err);
-          toast.error(`Failed to increment view: ${err.message}`);
+    // If we've already recorded a view for this session, skip.
+    if (sessionStorage.getItem(viewKey)) {
+      console.log(`[WatchVideo] View already incremented for videoId: ${videoId} in this session.`);
+      return;
+    }
+
+    // Helper: lightweight sendBeacon fallback (adjust endpoint if your backend differs)
+    const beaconIncrement = (id: string) => {
+      try {
+        if (!('sendBeacon' in navigator)) {
+          console.warn('[WatchVideo] sendBeacon not available in this browser.');
+          return false;
         }
-      } else {
-        console.log(`[WatchVideo] View not incremented: Video status is not 'published' (${video?.status}).`);
+        const url = '/api/videos/increment-view'; // <-- change if your backend uses a different route
+        const payload = JSON.stringify({ videoId: id });
+        const blob = new Blob([payload], { type: 'application/json' });
+        const ok = navigator.sendBeacon(url, blob);
+        console.log('[WatchVideo] sendBeacon result for', id, ok);
+        return ok;
+      } catch (e) {
+        console.warn('[WatchVideo] sendBeacon failed', e);
+        return false;
+      }
+    };
+
+    console.log(`[WatchVideo] View threshold met for videoId: ${videoId}. Attempting to record view.`);
+
+    // Try to increment view count via your normal API call.
+    if (video?.status === 'published') {
+      try {
+        await incrementVideoView(videoId);
+        console.log(`[WatchVideo] View incremented successfully for videoId: ${videoId}`);
+      } catch (err: any) {
+        console.error(`[WatchVideo] Failed to increment view for videoId: ${videoId}`, err);
+        // Try a best-effort beacon fallback so short navigations don't lose the ping
+        const beaconOk = beaconIncrement(videoId);
+        if (beaconOk) {
+          console.log('[WatchVideo] Fallback sendBeacon succeeded.');
+        } else {
+          // Don't spam the user with raw errors in production; keep message friendly.
+          toast.error('Failed to record view for this session (will not retry).');
+        }
+      }
+    } else {
+      console.log(
+        `[WatchVideo] View not incremented: Video status is not 'published' (${video?.status}).`
+      );
+    }
+
+    // Best-effort: add to user's history if signed-in.
+    if (user) {
+      try {
+        await addVideoToHistory(user.id, videoId);
+        console.log(`[WatchVideo] Video added to history for user: ${user.id}`);
+      } catch (err: any) {
+        console.error(`[WatchVideo] Failed to add video to history for user: ${user?.id}`, err);
+        // don't block flow for history failures
+      }
+    }
+
+    // Mark this video as counted for this session so we don't repeat the above.
+    try {
+      sessionStorage.setItem(viewKey, 'true');
+      console.log(`[WatchVideo] sessionStorage key '${viewKey}' set.`);
+    } catch (err) {
+      console.warn('[WatchVideo] Failed to set sessionStorage key:', err);
+    }
+  },
+  // dependencies: keep same as original so it updates when user or video status changes
+  [user, video?.status]
+);
       }
       if (user) {
         try {
