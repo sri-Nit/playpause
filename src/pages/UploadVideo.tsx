@@ -216,15 +216,6 @@ const UploadVideo = () => {
             </div>
           </form>
         </Form>
-        
-        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-          <h3 className="font-medium text-yellow-800">Troubleshooting Tips</h3>
-          <ul className="mt-2 text-sm text-yellow-700 list-disc pl-5 space-y-1">
-            <li>Ensure both "videos" and "thumbnails" storage buckets exist</li>
-            <li>Check that bucket policies allow authenticated uploads</li>
-            <li>Verify that public access is enabled for both buckets</li>
-          </ul>
-        </div>
       </div>
     </div>
   );
