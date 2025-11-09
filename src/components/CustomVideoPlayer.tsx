@@ -12,13 +12,13 @@ interface CustomVideoPlayerProps {
   videoId: string;
 }
 
-const CustomVideoPlayer = ({ // Removed React.FC<CustomVideoPlayerProps>
+const CustomVideoPlayer = ({
   videoUrl,
   title,
   thumbnailUrl,
   onProgressThresholdMet,
   videoId,
-}: CustomVideoPlayerProps) => { // Added type annotation to parameters
+}: CustomVideoPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
