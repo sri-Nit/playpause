@@ -1,6 +1,24 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getVideoById, incrementVideoView, Video, Profile, getLikesForVideo, addLike, removeLike, getCommentsForVideo, addComment, deleteComment, deleteVideo, isFollowing, addSubscription, removeSubscription, updateVideoMetadata, addVideoToHistory, CommentWithProfile } from '@/lib/video-store'; // Import CommentWithProfile
+import {
+  getVideoById,
+  incrementVideoView,
+  Video,
+  Profile,
+  getLikesForVideo,
+  addLike,
+  removeLike,
+  getCommentsForVideo,
+  addComment,
+  deleteComment,
+  deleteVideo,
+  isFollowing,
+  addSubscription,
+  removeSubscription,
+  updateVideoMetadata,
+  addVideoToHistory,
+  CommentWithProfile,
+} from '@/lib/video-store';
 import CustomVideoPlayer from '@/components/CustomVideoPlayer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -13,7 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 
-const WatchVideo = () => {
+const WatchVideo: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isLoading: isSessionLoading } = useSession();
@@ -34,102 +52,86 @@ const WatchVideo = () => {
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
-  // Replace your existing handleVideoProgressThresholdMet useCallback with this block
-const handleVideoProgressThresholdMet = useCallback(
-  async (videoId: string) => {
-    const viewKey = `video_viewed_50_${videoId}`;
-    console.log(`[WatchVideo] handleVideoProgressThresholdMet called for videoId: ${videoId}`);
-    console.log(`[WatchVideo] User: ${user ? user.id : 'Not authenticated'}`);
-    console.log(`[WatchVideo] Video status: ${video?.status}`);
 
-    // If we've already recorded a view for this session, skip.
-    if (sessionStorage.getItem(viewKey)) {
-      console.log(`[WatchVideo] View already incremented for videoId: ${videoId} in this session.`);
-      return;
-    }
+  // Handle view increment when playback threshold is met (with beacon fallback)
+  const handleVideoProgressThresholdMet = useCallback(
+    async (videoId: string) => {
+      const viewKey = `video_viewed_50_${videoId}`;
+      console.log(`[WatchVideo] handleVideoProgressThresholdMet called for videoId: ${videoId}`);
+      console.log(`[WatchVideo] User: ${user ? user.id : 'Not authenticated'}`);
+      console.log(`[WatchVideo] Video status: ${video?.status}`);
 
-    // Helper: lightweight sendBeacon fallback (adjust endpoint if your backend differs)
-    const beaconIncrement = (id: string) => {
-      try {
-        if (!('sendBeacon' in navigator)) {
-          console.warn('[WatchVideo] sendBeacon not available in this browser.');
+      // If we've already recorded a view for this session, skip.
+      if (sessionStorage.getItem(viewKey)) {
+        console.log(`[WatchVideo] View already incremented for videoId: ${videoId} in this session.`);
+        return;
+      }
+
+      // Helper: lightweight sendBeacon fallback (adjust endpoint if your backend differs)
+      const beaconIncrement = (id: string) => {
+        try {
+          if (!('sendBeacon' in navigator)) {
+            console.warn('[WatchVideo] sendBeacon not available in this browser.');
+            return false;
+          }
+          const url = '/api/videos/increment-view'; // <-- change if your backend uses a different route
+          const payload = JSON.stringify({ videoId: id });
+          const blob = new Blob([payload], { type: 'application/json' });
+          const ok = navigator.sendBeacon(url, blob);
+          console.log('[WatchVideo] sendBeacon result for', id, ok);
+          return ok;
+        } catch (e) {
+          console.warn('[WatchVideo] sendBeacon failed', e);
           return false;
         }
-        const url = '/api/videos/increment-view'; // <-- change if your backend uses a different route
-        const payload = JSON.stringify({ videoId: id });
-        const blob = new Blob([payload], { type: 'application/json' });
-        const ok = navigator.sendBeacon(url, blob);
-        console.log('[WatchVideo] sendBeacon result for', id, ok);
-        return ok;
-      } catch (e) {
-        console.warn('[WatchVideo] sendBeacon failed', e);
-        return false;
-      }
-    };
+      };
 
-    console.log(`[WatchVideo] View threshold met for videoId: ${videoId}. Attempting to record view.`);
+      console.log(`[WatchVideo] View threshold met for videoId: ${videoId}. Attempting to record view.`);
 
-    // Try to increment view count via your normal API call.
-    if (video?.status === 'published') {
-      try {
-        await incrementVideoView(videoId);
-        console.log(`[WatchVideo] View incremented successfully for videoId: ${videoId}`);
-      } catch (err: any) {
-        console.error(`[WatchVideo] Failed to increment view for videoId: ${videoId}`, err);
-        // Try a best-effort beacon fallback so short navigations don't lose the ping
-        const beaconOk = beaconIncrement(videoId);
-        if (beaconOk) {
-          console.log('[WatchVideo] Fallback sendBeacon succeeded.');
-        } else {
-          // Don't spam the user with raw errors in production; keep message friendly.
-          toast.error('Failed to record view for this session (will not retry).');
+      // Try to increment view count via your normal API call.
+      if (video?.status === 'published') {
+        try {
+          await incrementVideoView(videoId);
+          console.log(`[WatchVideo] View incremented successfully for videoId: ${videoId}`);
+        } catch (err: any) {
+          console.error(`[WatchVideo] Failed to increment view for videoId: ${videoId}`, err);
+          // Try a best-effort beacon fallback so short navigations don't lose the ping
+          const beaconOk = beaconIncrement(videoId);
+          if (beaconOk) {
+            console.log('[WatchVideo] Fallback sendBeacon succeeded.');
+          } else {
+            // Don't spam the user with raw errors in production; keep message friendly.
+            toast.error('Failed to record view for this session (will not retry).');
+          }
         }
+      } else {
+        console.log(
+          `[WatchVideo] View not incremented: Video status is not 'published' (${video?.status}).`
+        );
       }
-    } else {
-      console.log(
-        `[WatchVideo] View not incremented: Video status is not 'published' (${video?.status}).`
-      );
-    }
 
-    // Best-effort: add to user's history if signed-in.
-    if (user) {
-      try {
-        await addVideoToHistory(user.id, videoId);
-        console.log(`[WatchVideo] Video added to history for user: ${user.id}`);
-      } catch (err: any) {
-        console.error(`[WatchVideo] Failed to add video to history for user: ${user?.id}`, err);
-        // don't block flow for history failures
-      }
-    }
-
-    // Mark this video as counted for this session so we don't repeat the above.
-    try {
-      sessionStorage.setItem(viewKey, 'true');
-      console.log(`[WatchVideo] sessionStorage key '${viewKey}' set.`);
-    } catch (err) {
-      console.warn('[WatchVideo] Failed to set sessionStorage key:', err);
-    }
-  },
-  // dependencies: keep same as original so it updates when user or video status changes
-  [user, video?.status]
-);
-      }
+      // Best-effort: add to user's history if signed-in.
       if (user) {
         try {
           await addVideoToHistory(user.id, videoId);
           console.log(`[WatchVideo] Video added to history for user: ${user.id}`);
         } catch (err: any) {
-          console.error(`[WatchVideo] Failed to add video to history for user: ${user.id}`, err);
-          toast.error(`Failed to add to history: ${err.message}`);
+          console.error(`[WatchVideo] Failed to add video to history for user: ${user?.id}`, err);
+          // don't block flow for history failures
         }
       }
-      sessionStorage.setItem(viewKey, 'true');
-      console.log(`[WatchVideo] sessionStorage key '${viewKey}' set.`);
-    } else {
-      console.log(`[WatchVideo] View already incremented for videoId: ${videoId} in this session. Not incrementing again.`);
-    }
-  }, [user, video]); // Added 'video' to dependencies to ensure video?.status is always current
 
+      // Mark this video as counted for this session so we don't repeat the above.
+      try {
+        sessionStorage.setItem(viewKey, 'true');
+        console.log(`[WatchVideo] sessionStorage key '${viewKey}' set.`);
+      } catch (err) {
+        console.warn('[WatchVideo] Failed to set sessionStorage key:', err);
+      }
+    },
+    // Keep dependency on user and video?.status so handler updates when they change
+    [user, video?.status]
+  );
 
   const fetchVideoDetails = useCallback(async () => {
     if (!id) {
@@ -223,7 +225,7 @@ const handleVideoProgressThresholdMet = useCallback(
     try {
       if (isLiked) {
         await removeLike(user.id, id);
-        setLikes(prev => prev - 1);
+        setLikes(prev => Math.max(0, prev - 1));
         setIsLiked(false);
         toast.success('Video unliked!');
       } else {
@@ -346,9 +348,9 @@ const handleVideoProgressThresholdMet = useCallback(
         setIsFollowingUploader(false);
         toast.success(`Left ${uploaderProfile.first_name || 'creator'}'s crew.`);
       } else {
-        await addSubscription(user.id, uploaderProfile.id);
+        await addSubscription(user.id, uploader_profile!.id);
         setIsFollowingUploader(true);
-        toast.success(`Joined ${uploaderProfile.first_name || 'creator'}'s crew!`);
+        toast.success(`Joined ${uploader_profile!.first_name || 'creator'}'s crew!`);
       }
     } catch (err: any) {
       toast.error(err.message || 'Failed to update crew status.');
@@ -468,7 +470,7 @@ const handleVideoProgressThresholdMet = useCallback(
           onProgressThresholdMet={handleVideoProgressThresholdMet}
           videoId={video.id}
         />
-        
+
         <div className="mt-6 border-b pb-4">
           <h1 className="text-4xl font-extrabold mb-2 leading-tight">{video.title}</h1>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-muted-foreground text-sm mb-4">
@@ -547,9 +549,9 @@ const handleVideoProgressThresholdMet = useCallback(
           </div>
           {!isOwner && user && video.creator_profiles && (
             <>
-              <Button 
-                variant={isFollowingUploader ? "secondary" : "default"} 
-                onClick={handleFollowToggle} 
+              <Button
+                variant={isFollowingUploader ? "secondary" : "default"}
+                onClick={handleFollowToggle}
                 disabled={isSubscribing}
                 className="mr-2"
               >
@@ -659,9 +661,6 @@ const handleVideoProgressThresholdMet = useCallback(
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reply to Comment</DialogTitle>
-            <DialogDescription>
-              Replying to a comment.
-            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Textarea
